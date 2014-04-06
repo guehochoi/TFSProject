@@ -1,11 +1,16 @@
 Tiny File System: CSCI 485 SP14 Project
 ==========
-#Team Members
-  John Piontkowsky </br>
-  April Luo </br>
-  Gueho Choi </br>
-  Marc Mendiola </br>
-  Vahe Kilamyan </br>
+#Team Members and Responsibilities
+#####John Piontkowsky
+######blah?
+#####April Luo
+######blah?
+#####Gueho Choi
+######blah?
+#####Marc Mendiola
+######blah?
+#####Vahe Kilamyan
+######blah?
   
 Compiling Instruction
 ==========
