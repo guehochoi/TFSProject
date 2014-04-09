@@ -33,19 +33,21 @@ public class Test1 {
 		fs.createDirectory(rootDirectory);
 	}
 
-	public void directoryCreate(int maxDepth, int currDir,
-			String rootDir) {
+	public void directoryCreate(int maxDepth, int currDir, String rootDir) {
 		if (currDir > maxDepth) {
 			return;
 		}
+		
 		String myDir = rootDir + "\\" + currDir;
 		fs.createDirectory(myDir);
+		
 		directoryCreate(maxDepth, currDir * 2, myDir);
 		directoryCreate(maxDepth, (currDir * 2) + 1, myDir);
 	}
 
 	public static void main(String[] args) {
 		Test1 test1 = new Test1();
+
 		int dirNumber = 0;
 		if (args.length > 0) {
 			try {
@@ -56,10 +58,12 @@ public class Test1 {
 				System.exit(1);
 			}
 		}
+
 		if (dirNumber < 1) {
 			System.err.println(dirNumber + " is not a valid input.");
 		}
-		test1.directoryCreate(dirNumber, 1, rootDirectory.toString());
+
+		test1.directoryCreate(dirNumber, 1, rootDirectory);
 		System.out.println("Directories created.");
 	}
 }
