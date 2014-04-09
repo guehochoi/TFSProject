@@ -1,5 +1,10 @@
 package Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import Master.FileSystem;
+
 /*	Test1:  Create a hierarchical directory structure.  Its input is the number of directories to create and is a
  *	value greater than 1.  This test program creates a directory named "1" and two subdirectories underneath it,
  *	2 and 3.  It repeats the process for these subdirectories recursively creating a subdirectory for each leaf
@@ -20,9 +25,23 @@ package Test;
  *  */
 
 public class Test1 {
-	
-	public void recursiveDirectoryCreate(){
+	public static String rootDirectory = "\\usr";
+	public FileSystem fs;
 
+	public Test1() {
+		fs = new FileSystem();
+		fs.createDirectory(rootDirectory);
+	}
+
+	public void directoryCreate(int maxDepth, int currDir,
+			String rootDir) {
+		if (currDir > maxDepth) {
+			return;
+		}
+		String myDir = rootDir + "\\" + currDir;
+		fs.createDirectory(myDir);
+		directoryCreate(maxDepth, currDir * 2, myDir);
+		directoryCreate(maxDepth, (currDir * 2) + 1, myDir);
 	}
 
 	public static void main(String[] args) {
@@ -39,9 +58,8 @@ public class Test1 {
 		}
 		if (dirNumber < 1) {
 			System.err.println(dirNumber + " is not a valid input.");
-		} else {
-			test1.recursiveDirectoryCreate();
 		}
+		test1.directoryCreate(dirNumber, 1, rootDirectory.toString());
+		System.out.println("Directories created.");
 	}
-	
 }
