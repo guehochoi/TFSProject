@@ -1,11 +1,15 @@
 package Master;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Comparator;
 
 public class FileSystem {
+	
+	public final String currentDir = System.getProperty("user.dir");
 	
 	private class TFSFile{
 		String fileName = "";
@@ -37,7 +41,7 @@ public class FileSystem {
 	public FileSystem()
 	{
 		directoryHash = new Hashtable<String,TFSDirectory>();
-		directoryHash.put("/", new TFSDirectory());
+		directoryHash.put("\\", new TFSDirectory());
 	}
 	
 	public boolean createFile(String filename)
@@ -48,6 +52,13 @@ public class FileSystem {
 		{
 			TFSFile file = new TFSFile();
 			file.fileName = trimFileName(filename);
+			
+			try {
+				File myFile = new File(currentDir + filename);
+				myFile.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			
 			TFSDirectory dir = directoryHash.get(directoryPath);
 			dir.files.add(file);
@@ -66,6 +77,9 @@ public class FileSystem {
 			TFSDirectory parentDir = directoryHash.get(dirPath);
 			parentDir.subdirectories.add(directoryName);
 			directoryHash.put(directoryName, new TFSDirectory());
+
+			File myDir = new File(currentDir + directoryName);
+			myDir.mkdir();
 		}
 		
 		return false;
@@ -95,17 +109,17 @@ public class FileSystem {
 	
 	private String getDirectoryPath(String path)
 	{
-		if(path != "" && path.contains("/")) //Either the root directory or empty
+		if(path != "" && path.contains("\\")) //Either the root directory or empty
 		{
-			int lastIndex = path.lastIndexOf('/');
+			int lastIndex = path.lastIndexOf('\\');
 			
 			if(lastIndex == 0)
 			{
-				return "/";
+				return "\\";
 			}
 			else
 			{
-				return path.substring(0, path.lastIndexOf('/'));
+				return path.substring(0, path.lastIndexOf('\\'));
 			}
 		}
 
@@ -126,7 +140,7 @@ public class FileSystem {
 	
 	private String trimFileName(String filename)
 	{
-		return filename.substring(filename.lastIndexOf('/')+1);
+		return filename.substring(filename.lastIndexOf('\\')+1);
 	}
 	
 	public void printDirectory(String directoryPath, int depth)
