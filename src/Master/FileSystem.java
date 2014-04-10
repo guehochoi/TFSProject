@@ -185,10 +185,9 @@ public class FileSystem {
 
 	public SortedSet<String> getSubdirectories(String directory)
 	{
-		if( directoryHash.contains(directory))
+		if( directoryHash.containsKey(directory))
 		{
 			return directoryHash.get(directory).subdirectories;
-
 		}
 		else
 		{
