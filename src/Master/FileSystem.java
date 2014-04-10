@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Hashtable;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -112,7 +113,18 @@ public class FileSystem {
 
 			for(TFSFile file : dir.files)
 			{
-				//Do whatever we have to do to remove the file
+				File f = new File(directoryPath + File.pathSeparator + file.fileName);
+				if (!f.exists()) {
+					System.err.println("Error: file not exist");
+				}
+				if (f.isFile()) {
+					System.err.println("Error: not file");
+				}
+				if (f.delete()) {
+					// file deleted successfully
+				}else {
+					System.err.println("Error: file deletion");
+				}
 			}
 
 			for(String subdir : dir.subdirectories)
