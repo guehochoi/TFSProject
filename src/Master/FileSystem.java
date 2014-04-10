@@ -1,6 +1,9 @@
 package Master;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.SortedSet;
@@ -10,6 +13,7 @@ import java.util.Comparator;
 public class FileSystem {
 
 	public final String currentDir = System.getProperty("user.dir");
+	private final String backupFileName = "TFSBackup.txt";
 
 	private class TFSFile{
 		String fileName = "";
@@ -42,6 +46,13 @@ public class FileSystem {
 	{
 		directoryHash = new Hashtable<String,TFSDirectory>();
 		directoryHash.put("\\", new TFSDirectory());
+		
+		File backupFile = new File(backupFileName);
+		
+		if(backupFile.exists())
+		{
+			restoreFS();
+		}
 	}
 
 	public boolean createFile(String filename)
@@ -182,6 +193,88 @@ public class FileSystem {
 		else
 		{
 			return null;
+		}
+	}
+	
+	public boolean backupFS()
+	{
+		try {
+			File myFile = new File(backupFileName);
+			
+			if(myFile.exists())
+			{
+				myFile.delete();
+			}
+			
+			myFile.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		backupDirectory("\\");
+		return true;
+	}
+	
+	private void backupDirectory(String directory)
+	{
+		TFSDirectory dir = directoryHash.get(directory);
+		File myFile = new File(backupFileName);
+		
+		try {
+			FileWriter fw = new FileWriter(myFile.getAbsolutePath(),true);
+			
+			if(!directory.equals("\\"))
+			{
+				fw.append(directory + "\n");
+			}
+			
+			for(TFSFile f : dir.files)
+			{
+				fw.append(f.fileName + "\n");
+			}
+			
+			fw.close();
+			
+			for(String subDir : dir.subdirectories)
+			{
+				backupDirectory(subDir);
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void restoreFS()
+	{
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(backupFileName));
+			String readLine = null, currentDir = null;
+			
+			while((readLine = br.readLine()) != null)
+			{
+				if(readLine.contains("\\"))
+				{
+					currentDir = readLine;
+					String parentDir = getDirectoryPath(currentDir);
+					
+					if(directoryHash.containsKey(parentDir))
+					{
+						directoryHash.put(currentDir, new TFSDirectory());
+						directoryHash.get(parentDir).subdirectories.add(currentDir);
+					}
+				}
+				else if(currentDir != null)
+				{
+					TFSFile f = new TFSFile();
+					f.fileName = readLine;
+					directoryHash.get(currentDir).files.add(f);
+				}
+			}
+			
+			br.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 }
