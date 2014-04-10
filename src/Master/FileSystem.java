@@ -66,6 +66,11 @@ public class FileSystem {
 
 			try {
 				File myFile = new File(currentDir + filename);
+				if(myFile.exists())
+				{
+					System.err.println("Tried to create a file that already existed.");
+					return false;
+				}
 				myFile.createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
