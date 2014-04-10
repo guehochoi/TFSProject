@@ -41,7 +41,7 @@ public class Test3 {
 	 * @param dirpath directory path
 	 * @return status
 	 */
-	public static status delDir(String dirpath) {
+	public status delDir(String dirpath) {
 		String abspath = rootDirectory + File.separator + dirpath;
 		// ask master if abspath exists
 			// if not, return status.PATH_NOT_EXIST
@@ -65,28 +65,43 @@ public class Test3 {
 		return status.SUCCESS;
 	}
 	
+	/**
+	 * 
+	 */
+	public boolean delDir2(String dirpath) {
+		return fs.deleteDirectory(dirpath);
+	}
+	
 	public static void main(String args[]) {
 		if (args.length != 1) {
 			System.out.println("invalid argument");
 			System.exit(1);
 		}
-		switch (delDir(args[0])) {
-		case SUCCESS:
-			System.out.println("Successfully Deleted " + args[0]);
-			break;
-		case PATH_NOT_EXIST:
-			System.out.println("Error: The path: " + args[0] + " does not exist");
-			break;
-		case ATTEMPT_ON_ROOT:
-			System.out.println("Error: Root cannot be deleted");
-			break;
-		case FILE_FAILURE:
-			System.out.println("Error: File cannot be deleted");
-			break;
-		case DIR_FAILURE:
-			System.out.println("Error: Directory cannot be deleted");
-		default: System.out.println("invalid error"); break;
+		Test3 t = new Test3();
+		if (t.delDir2(args[0])) {
+			System.out.println("Deletion success");
+		}else {
+			System.err.println("Deletion fail");
 		}
+//		switch (t.delDir(args[0])) {
+//		case SUCCESS:
+//			System.out.println("Successfully Deleted " + args[0]);
+//			break;
+//		case PATH_NOT_EXIST:
+//			System.out.println("Error: The path: " + args[0] + " does not exist");
+//			break;
+//		case ATTEMPT_ON_ROOT:
+//			System.out.println("Error: Root cannot be deleted");
+//			break;
+//		case FILE_FAILURE:
+//			System.out.println("Error: File cannot be deleted");
+//			break;
+//		case DIR_FAILURE:
+//			System.out.println("Error: Directory cannot be deleted");
+//		default: System.out.println("invalid error"); break;
+//		}
+		
+		
 	}
 	
 }

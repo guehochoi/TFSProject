@@ -102,7 +102,7 @@ public class FileSystem {
 		return false;
 	}
 
-	public void deleteDirectory(String directoryPath)
+	public boolean deleteDirectory(String directoryPath)
 	{
 		TFSDirectory parentDir = directoryHash.get(directoryPath);
 		parentDir.subdirectories.remove(directoryPath);
@@ -113,25 +113,35 @@ public class FileSystem {
 
 			for(TFSFile file : dir.files)
 			{
-				File f = new File(directoryPath + File.pathSeparator + file.fileName);
+				File f = new File(currentDir + directoryPath + File.pathSeparator + file.fileName);
 				if (!f.exists()) {
 					System.err.println("Error: file not exist");
+					return false;
 				}
 				if (f.isFile()) {
 					System.err.println("Error: not file");
+					return false;
 				}
 				if (f.delete()) {
 					// file deleted successfully
+					System.out.println(f.getPath() + " is deleted successfully");
 				}else {
 					System.err.println("Error: file deletion");
+					return false;
 				}
 			}
 
 			for(String subdir : dir.subdirectories)
 			{
-				deleteDirectory(subdir);
+				if (!deleteDirectory(subdir))
+					return false;
 			}
+			
+		}else {
+			System.err.println("Directory hash is not present");
+			return false;
 		}
+		return true;
 	}
 
 
