@@ -32,6 +32,10 @@ public class Test1 {
 		fs = new FileSystem();
 		fs.createDirectory(rootDirectory);
 	}
+	
+	public Test1(int maxDepth){
+		directoryCreate(maxDepth, 1, rootDirectory);
+	}
 
 	public void directoryCreate(int maxDepth, int currDir, String rootDir) {
 		if (currDir > maxDepth) {

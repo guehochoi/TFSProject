@@ -113,12 +113,12 @@ public class FileSystem {
 
 			for(TFSFile file : dir.files)
 			{
-				File f = new File(currentDir + directoryPath + File.pathSeparator + file.fileName);
+				File f = new File(currentDir + File.pathSeparator + directoryPath + File.pathSeparator + file.fileName);
 				if (!f.exists()) {
 					System.err.println("Error: file not exist");
 					return false;
 				}
-				if (f.isFile()) {
+				if (!f.isFile()) {
 					System.err.println("Error: not file");
 					return false;
 				}
