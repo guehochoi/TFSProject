@@ -44,6 +44,7 @@ public class Test3 {
 		
 		String dirPath = args[0];
 		t3.delDirectoryPath(dirPath);
+		System.out.println("Directories and files under " + dirPath + " were deleted.");
 	}
 	
 }

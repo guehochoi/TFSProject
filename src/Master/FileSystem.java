@@ -224,6 +224,10 @@ public class FileSystem {
 
 	public void deleteDirectory(String directoryPath)
 	{
+		if(directoryHash.get(directoryPath) == null){
+			System.err.println("Directory specified did not exist.");
+			return;
+		}
 		TFSDirectory parentDir = directoryHash.get(directoryPath);
 		parentDir.subdirectories.remove(directoryPath);
 
