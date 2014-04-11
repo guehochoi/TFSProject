@@ -13,7 +13,7 @@ public class Master {
 		fs.createDirectory("\\lib");
 		fs.createFile("\\usr\\kitten.txt");
 		fs.createFile("ShouldFail.txt");
-		fs.backupFS();
+		fs.deleteDirectory("\\usr\\bin");
 		fs.printDirectory("\\", 0);
 	}
 }

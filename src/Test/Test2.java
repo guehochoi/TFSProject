@@ -18,40 +18,39 @@ import Master.FileSystem;
  *  */
 
 public class Test2 {
+	
 	public FileSystem fs;
-	public Test1 test1;
-
+	boolean rootBool;
+	
 	public Test2() {
-		test1 = new Test1(6);
+		rootBool = true;
+		fs = new FileSystem();
 	}
 
 	public void createFiles(int numFiles, String rootDir) {
-		// TODO: Filesystem needs to return subdirectories of root given.
-		// TODO: Create specified number of files in directory and
-		// subdirectories.
+		
+		//Only run this on first rootdir.
+		//if(rootBool){
 		for (int i = 1; i <= numFiles; i++) {
 			String fileName = "";
 			fileName = "\\File" + i + ".txt";
-			test1.fs.createFile(rootDir + fileName);
+			fs.createFile(rootDir + fileName);
 		}
+			//rootBool = false;
+		//}
 
-		for (String subDir : test1.fs.getSubdirectories(rootDir)) {
-			String fileName = "";
-			for (int i = 1; i <= numFiles; i++) {
-				fileName = "\\File" + i + ".txt";
+		for (String subDir : fs.getSubdirectories(rootDir)) {
 				createFiles(numFiles,subDir);
-				//test1.fs.createFile(subDir + fileName);
-			}
 		}
 	}
 
 	public static void main(String[] args) {
-		String dirPath = "";
+		String dirPath = "\\usr\\";
 		int numFiles = 0;
 		Test2 t2 = new Test2();
 
 		if (args.length > 0) {
-			dirPath = args[0]; // TODO: Check path validity.
+			dirPath = dirPath + args[0];
 			try {
 				numFiles = Integer.parseInt(args[1]);
 			} catch (NumberFormatException e) {
