@@ -28,7 +28,7 @@ import Master.FileSystem;
 
 
 public class Test3 {
-	public static String rootDirectory = "\\usr";
+	public static String rootDirectory = "\\";
 	public FileSystem fs;
 	
 	private enum status {
@@ -105,7 +105,8 @@ public class Test3 {
 						fnbuild.append(File.separator + split[j]);
 				}
 				
-				f = new File("usr"+File.separator+fnbuild.toString());
+				//f = new File(rootDirectory.substring(rootDirectory.indexOf('\\')+1)+File.separator+fnbuild.toString());
+				f = new File(fnbuild.toString());
 				if (!f.exists()) {
 					if (fnbuild.toString().contains("File")) {
 						System.out.println("Creating " + f.getAbsolutePath());
@@ -134,7 +135,7 @@ public class Test3 {
 		}
 		Test3 t = new Test3();
 		//t.testSetup();  /* uncomment this when previous tests are run before */
-		if (t.delDir2("\\usr\\"+args[0])) {
+		if (t.delDir2(rootDirectory+args[0])) {
 			System.out.println("Deletion success");
 		}else {
 			System.err.println("Deletion fail");
