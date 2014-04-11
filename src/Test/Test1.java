@@ -25,7 +25,7 @@ import Master.FileSystem;
  *  */
 
 public class Test1 {
-	public static String rootDirectory = "\\usr";
+	public static String rootDirectory = "";
 	public FileSystem fs;
 
 	public Test1() {

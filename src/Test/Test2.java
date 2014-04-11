@@ -41,7 +41,7 @@ public class Test2 {
 	}
 
 	public static void main(String[] args) {
-		String rootPath = "\\usr";
+		String rootPath = "";
 		String dirPath = "";
 		int numFiles = 0;
 		Test2 t2 = new Test2();
