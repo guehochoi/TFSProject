@@ -38,12 +38,6 @@ public class FSLogger implements Runnable {
 	{
 		while(exitLogger == false)
 		{
-			try {
-				parentThread.join();
-			} catch (InterruptedException e1) {
-				e1.printStackTrace();
-			}
-			
 			try 
 			{
 				sema.acquire();
@@ -52,6 +46,18 @@ public class FSLogger implements Runnable {
 				{
 					processTransaction();
 					updatePersistentFile();
+				}
+				
+				if(!parentThread.isAlive())
+				{
+					if(commitList.isEmpty())
+					{
+						exitLogger = true;
+					}
+					else
+					{
+						sema.release();
+					}
 				}
 			} 
 			catch (InterruptedException e) 
@@ -63,11 +69,9 @@ public class FSLogger implements Runnable {
 	
 	public void start()
 	{
-		t = new Thread(this,"FSLoggerThread");
-		t.setDaemon(true);
-		t.start();
-		
 		parentThread = Thread.currentThread();
+		t = new Thread(this,"FSLoggerThread");
+		t.start();
 	}
 	
 	public void end()
