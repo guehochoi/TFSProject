@@ -192,7 +192,7 @@ public class FileSystem {
 			for(TFSFile file : dir.files)
 			{
 				
-				File f = new File(dirpath + File.separator + file.fileName);
+				File f = new File(dirpath + File.separator + file.fileName.substring(file.fileName.lastIndexOf('\\')+1));
 				
 				if (!f.exists()) {
 					fsLogger.removeTransaction();

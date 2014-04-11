@@ -104,6 +104,7 @@ public class Test3 {
 					else 
 						fnbuild.append(File.separator + split[j]);
 				}
+				
 				f = new File("usr"+File.separator+fnbuild.toString());
 				if (!f.exists()) {
 					if (fnbuild.toString().contains("File")) {
