@@ -5,10 +5,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 import java.util.Hashtable;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Comparator;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 public class FileSystem {
 
@@ -88,6 +94,40 @@ public class FileSystem {
 
 		return false;
 	}
+	
+	public boolean appendDataToFile(String tfsFile, byte[] dataToAppend,
+			int dataSize) {
+
+		Path tfsPath = Paths.get(currentDir + tfsFile);
+		File myFile = new File(currentDir + tfsFile);
+		String directoryPath = getDirectoryPath(tfsFile);
+		ByteBuffer bb = ByteBuffer.allocate(4); 
+	    bb.putInt(dataSize); 
+	    byte [] sizeBytes =  bb.array();
+
+		if (directoryHash.containsKey(directoryPath)
+				&& isValidFileName(tfsFile)) {
+			fsLogger.beginTransaction("appendToFile", tfsFile);
+			if (!myFile.exists()) {
+				createFile(tfsFile);
+			}
+			try {
+				Files.write(tfsPath, sizeBytes, StandardOpenOption.APPEND);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+				try {
+					Files.write(tfsPath, dataToAppend, StandardOpenOption.APPEND);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			fsLogger.commitTransaction();
+			return true;
+		}
+		return false;
+	}
+	
+	
 
 	public boolean createDirectory(String directoryName)
 	{
