@@ -1,7 +1,9 @@
 package Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Stack;
+import java.util.regex.Matcher;
 
 import Master.FileSystem;
 
@@ -69,15 +71,68 @@ public class Test3 {
 	 * 
 	 */
 	public boolean delDir2(String dirpath) {
-		return fs.deleteDirectory(dirpath);
+		String str = dirpath;
+		str = str.replaceAll("/+", Matcher.quoteReplacement("\\"));
+		return fs.deleteDirectory(str);
+	}
+	
+	
+	public void testSetup() {
+		
+		String filesToCreate[] = {
+				"1\\2\\File2",
+				"1\\2\\File3",
+				"1\\2\\4\\File1",
+				"1\\2\\4\\File2",
+				"1\\2\\4\\File3",
+				"1\\2\\5\\File1",
+				"1\\2\\5\\File2",
+				"1\\2\\5\\File3"
+		};
+		
+		File f = null;
+		fs.createDirectory(rootDirectory);
+		
+		for (String fn : filesToCreate) {
+			
+			String[] split = fn.split("\\\\");
+			for (int i=0; i < split.length; i++) {
+				StringBuilder fnbuild = new StringBuilder();
+				for (int j=0; j <= i; j++) {
+					if (j==0)
+						fnbuild.append(split[j]);
+					else 
+						fnbuild.append(File.separator + split[j]);
+				}
+				f = new File("usr"+File.separator+fnbuild.toString());
+				if (!f.exists()) {
+					if (fnbuild.toString().contains("File")) {
+						System.out.println("Creating " + f.getAbsolutePath());
+						String str = rootDirectory + "\\" + fnbuild.toString();
+						str.replaceAll(File.pathSeparator, "\\");
+						fs.createFile(str);
+					}else {
+						System.out.println("Creating " + f.getAbsolutePath());
+						String str = rootDirectory + "\\" + fnbuild.toString();
+						str.replaceAll(File.pathSeparator, "\\");
+						fs.createDirectory(str);
+					}
+				}
+			}			
+		}
+		
+		
+		
 	}
 	
 	public static void main(String args[]) {
+		
 		if (args.length != 1) {
 			System.out.println("invalid argument");
 			System.exit(1);
 		}
 		Test3 t = new Test3();
+		t.testSetup();  /* uncomment this when previous tests are run before */
 		if (t.delDir2(args[0])) {
 			System.out.println("Deletion success");
 		}else {
