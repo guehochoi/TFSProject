@@ -57,7 +57,6 @@ public class Test6 {
 		
 		localFile = args[0];
 		tfsFile = args[1];
-		//tfsFile = tfsRoot + args[1];
 		
 		
 		//Get number of bytes in local file.

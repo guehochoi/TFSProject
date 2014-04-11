@@ -99,32 +99,40 @@ public class FileSystem {
 	public boolean appendDataToFile(String tfsFile, byte[] dataToAppend,
 			int dataSize) {
 
+		
 		Path tfsPath = Paths.get(currentDir + tfsFile);
 		File myFile = new File(currentDir + tfsFile);
 		String directoryPath = getDirectoryPath(tfsFile);
-		ByteBuffer bb = ByteBuffer.allocate(4); 
-	    bb.putInt(dataSize); 
-	    byte [] sizeBytes =  bb.array();
+		
+		//Put bytes into buffer to append.
+		ByteBuffer bb = ByteBuffer.allocate(4);
+		bb.putInt(dataSize);
+		byte[] sizeBytes = bb.array();
 
 		if (directoryHash.containsKey(directoryPath)
 				&& isValidFileName(tfsFile)) {
 			fsLogger.beginTransaction("appendToFile", tfsFile);
 			if (!myFile.exists()) {
-				createFile(tfsFile);
+				if (!createFile(tfsFile)) {
+					fsLogger.removeTransaction();
+				}
 			}
 			try {
 				Files.write(tfsPath, sizeBytes, StandardOpenOption.APPEND);
 			} catch (IOException e) {
+				fsLogger.removeTransaction();
 				e.printStackTrace();
 			}
-				try {
-					Files.write(tfsPath, dataToAppend, StandardOpenOption.APPEND);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+			try {
+				Files.write(tfsPath, dataToAppend, StandardOpenOption.APPEND);
+			} catch (IOException e) {
+				fsLogger.removeTransaction();
+				e.printStackTrace();
+			}
 			fsLogger.commitTransaction();
 			return true;
 		}
+
 		return false;
 	}
 	

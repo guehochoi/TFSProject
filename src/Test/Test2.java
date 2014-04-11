@@ -29,15 +29,11 @@ public class Test2 {
 
 	public void createFiles(int numFiles, String rootDir) {
 		
-		//Only run this on first rootdir.
-		//if(rootBool){
 		for (int i = 1; i <= numFiles; i++) {
 			String fileName = "";
 			fileName = "\\File" + i + ".txt";
 			fs.createFile(rootDir + fileName);
 		}
-			//rootBool = false;
-		//}
 
 		for (String subDir : fs.getSubdirectories(rootDir)) {
 				createFiles(numFiles,subDir);
