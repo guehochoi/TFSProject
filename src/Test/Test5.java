@@ -20,26 +20,25 @@ import Master.FileSystem;
  *  */
 
 public class Test5 {
-	public static String rootDirectory = "\\usr";
+	public static String rootDirectory = "\\";
 	public FileSystem fs;
 
 	public Test5() {
 		fs = new FileSystem();
 	}
 	
-	public void read(String rootDir, String src, String dst) {
+	public void read(String src, String dst) {
 	   fs.read(src, dst);
 	}
 
 	public static void main(String[] args) {
-		String dirPath = "\\usr\\";
 		Test5 t5 = new Test5();
 
 		if (args.length == 2) {
-			String srcPath = dirPath + args[0];
+			String srcPath = args[0];
 			String dstPath = args[1];
 
-     		t5.read(dirPath, srcPath, dstPath);
+     		t5.read(srcPath, dstPath);
 		}
     }
 
