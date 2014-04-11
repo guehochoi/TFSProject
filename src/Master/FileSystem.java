@@ -196,13 +196,13 @@ public class FileSystem {
 				
 				if (!f.exists()) {
 					fsLogger.removeTransaction();
-					System.err.println("Error: file not exist");
+					System.err.println("Error: "+f.getPath()+" not exist");
 					return false;
 				}
 
 				if (!f.isFile()) {
 					fsLogger.removeTransaction();
-					System.err.println("Error: not file");
+					System.err.println("Error: "+f.getPath()+" is not a file");
 					return false;
 				}
 
@@ -210,26 +210,31 @@ public class FileSystem {
 					System.out.println(f.getPath() + " is deleted successfully");
 				}else {
 					fsLogger.removeTransaction();
-					System.err.println("Error: file deletion");
+					System.err.println("Error: "+f.getPath()+" failed to delete");
 					return false;
 				}
 			}
 			if (!dir.subdirectories.isEmpty()) {
 				for(String subdir : dir.subdirectories)
 				{
-					if (!deleteDirectory(subdir))
+					if (!deleteDirectory(subdir)) {
 						return false;
+					}
 				}
 			}
 			
 				File f = new File(dirpath);
-				if (f.delete()) {
+				if (f.delete()) {					
 					System.out.println(f.getPath() + " is deleted successfully");
+				}else {
+					fsLogger.removeTransaction();
+					System.err.println("Error: "+f.getPath()+" failed to delete");
+					return false;
 				}
 
 			fsLogger.commitTransaction();
 		}
-
+		
 		return true;
 	}
 	
