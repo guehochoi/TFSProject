@@ -24,6 +24,7 @@ public class FSLogger implements Runnable {
 	private final File commitLog = new File("commited.txt");
 	
 	private Thread t;
+	private Thread parentThread;
 	
 	private List<String[]> commitList = new LinkedList<String[]>();
 	
@@ -37,6 +38,12 @@ public class FSLogger implements Runnable {
 	{
 		while(exitLogger == false)
 		{
+			try {
+				parentThread.join();
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+			
 			try 
 			{
 				sema.acquire();
@@ -59,6 +66,8 @@ public class FSLogger implements Runnable {
 		t = new Thread(this,"FSLoggerThread");
 		t.setDaemon(true);
 		t.start();
+		
+		parentThread = Thread.currentThread();
 	}
 	
 	public void end()
