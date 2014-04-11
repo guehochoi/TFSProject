@@ -446,14 +446,8 @@ public class FileSystem {
 
 	public void read(String src, String dst) {
 
-		String escapedSrc = currentDir + src.replace("\\","\\\\");
-		String escapedDst = dst.replace("\\","\\\\");
-
-		Path srcPath = FileSystems.getDefault().getPath(escapedSrc);
-		Path dstPath = FileSystems.getDefault().getPath(escapedDst);
-
-	    File srcFile = new File(escapedSrc);
-		File dstFile = new File(escapedDst);
+	    File srcFile = new File(currentDir + src);
+		File dstFile = new File(dst);
 	    if(!srcFile.exists()) {
 			System.out.println(src + " does not exist.");
 			return;
@@ -461,7 +455,7 @@ public class FileSystem {
 		
         if(dstFile.exists())
 		{
-				System.out.println(escapedDst + " already exists.");
+				System.out.println(dst + " already exists.");
 				return;
 		}
 		FileInputStream fin = null;
