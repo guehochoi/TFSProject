@@ -25,10 +25,22 @@ public class Test5 {
 
 	public Test5() {
 		fs = new FileSystem();
-		fs.createDirectory(rootDirectory);
 	}
 	
-	
+	public void read(String rootDir, String src, String dst) {
+	   fs.read(src, dst);
+	}
+
 	public static void main(String[] args) {
+		String dirPath = "\\usr\\";
+		Test5 t5 = new Test5();
+
+		if (args.length == 2) {
+			String srcPath = dirPath + args[0];
+			String dstPath = args[1];
+
+     		t5.read(dirPath, srcPath, dstPath);
+		}
     }
+
 }

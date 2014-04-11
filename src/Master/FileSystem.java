@@ -1,10 +1,17 @@
 package Master;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Hashtable;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -31,11 +38,11 @@ public class FileSystem {
 
 			files = new TreeSet<TFSFile>(new Comparator<TFSFile>()
 					{
-						public int compare(TFSFile a, TFSFile b)
-			{
-				return a.fileName.compareTo(b.fileName);
-			}
-			});
+				public int compare(TFSFile a, TFSFile b)
+				{
+					return a.fileName.compareTo(b.fileName);
+				}
+					});
 		}
 	}
 
@@ -46,9 +53,9 @@ public class FileSystem {
 		directoryHash = new Hashtable<String,TFSDirectory>();
 		directoryHash.put("\\", new TFSDirectory());
 		fsLogger.start();
-		
+
 		File backupFile = new File(fsLogger.persistentFileName);
-		
+
 		if(backupFile.exists())
 		{
 			restoreFS();
@@ -67,14 +74,14 @@ public class FileSystem {
 
 			try {
 				File myFile = new File(currentDir + filename);
-				
+
 				if(myFile.exists())
 				{
 					fsLogger.removeTransaction();
 					System.err.println("Tried to create a file that already existed.");
 					return false;
 				}
-				
+
 				myFile.createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -101,14 +108,14 @@ public class FileSystem {
 			directoryHash.put(directoryName, new TFSDirectory());
 
 			File myDir = new File(currentDir + directoryName);
-			
+
 			if(myDir.exists())
 			{
 				fsLogger.removeTransaction();
 				System.err.println("Tried to create a directory that already existed.");
 				return false;
 			}
-			
+
 			myDir.mkdir();
 			fsLogger.commitTransaction();
 			return true;
@@ -130,19 +137,19 @@ public class FileSystem {
 			for(TFSFile file : dir.files)
 			{
 				File f = new File(currentDir + File.pathSeparator + directoryPath + File.pathSeparator + file.fileName);
-				
+
 				if (!f.exists()) {
 					fsLogger.removeTransaction();
 					System.err.println("Error: file not exist");
 					return false;
 				}
-				
+
 				if (!f.isFile()) {
 					fsLogger.removeTransaction();
 					System.err.println("Error: not file");
 					return false;
 				}
-				
+
 				if (f.delete()) {
 					System.out.println(f.getPath() + " is deleted successfully");
 				}else {
@@ -157,10 +164,10 @@ public class FileSystem {
 				if (!deleteDirectory(subdir))
 					return false;
 			}
-			
+
 			fsLogger.commitTransaction();
 		}
-		
+
 		return true;
 	}
 
@@ -241,29 +248,29 @@ public class FileSystem {
 			return null;
 		}
 	}
-	
+
 	public void restoreFS()
 	{
 		File myFile = new File(fsLogger.persistentFileName);
-		
+
 		try 
 		{
 			BufferedReader br = new BufferedReader(new FileReader(myFile));
 			String readLine;
-			
+
 			while((readLine = br.readLine()) != null)
 			{
 				String[] split = readLine.split(" :");
-				
+
 				if(split[1] == null)
 				{
 					continue;
 				}
-				
+
 				if(split[1].equals("d"))
 				{
 					String parentDir = this.getDirectoryPath(split[0]);
-					
+
 					if(directoryHash.containsKey(parentDir))
 					{
 						directoryHash.get(parentDir).subdirectories.add(split[0]);
@@ -282,7 +289,7 @@ public class FileSystem {
 					}
 				}
 			}
-			
+
 			br.close();
 		} 
 		catch (IOException e) 
@@ -290,5 +297,59 @@ public class FileSystem {
 			e.printStackTrace();
 		}
 	}
-	
+
+	public void read(String src, String dst) {
+
+		String escapedSrc = currentDir + src.replace("\\","\\\\");
+		String escapedDst = dst.replace("\\","\\\\");
+
+		Path srcPath = FileSystems.getDefault().getPath(escapedSrc);
+		Path dstPath = FileSystems.getDefault().getPath(escapedDst);
+
+	    File srcFile = new File(escapedSrc);
+		File dstFile = new File(escapedDst);
+	    if(!srcFile.exists()) {
+			System.out.println(src + " does not exist.");
+			return;
+		}
+		
+        if(dstFile.exists())
+		{
+				System.out.println(escapedDst + " already exists.");
+				return;
+		}
+		FileInputStream fin = null;
+		FileOutputStream fout = null;
+		try {
+
+			fin = new FileInputStream(srcFile);
+
+			byte fileContent[] = new byte[(int)srcFile.length()];
+			fin.read(fileContent);
+
+			
+
+			fout = new FileOutputStream(dstFile);
+			fout.write(fileContent);
+			
+		} catch (FileNotFoundException e) {
+			System.out.println(src + " not found.");
+		}
+		catch (IOException e) {
+			 e.printStackTrace();
+		 } finally {
+
+			 try {
+				 if (fin != null) {
+					 fin.close();
+				 }
+				 if(fout != null) {
+					 fout.close();
+				 }
+			 } catch (IOException ioe) {
+				 System.out.println("Error while closing stream: " + ioe);
+			 }
+		 }
+	}
+
 }
