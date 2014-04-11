@@ -132,7 +132,7 @@ public class Test3 {
 			System.exit(1);
 		}
 		Test3 t = new Test3();
-		t.testSetup();  /* uncomment this when previous tests are run before */
+		//t.testSetup();  /* uncomment this when previous tests are run before */
 		if (t.delDir2("\\usr\\"+args[0])) {
 			System.out.println("Deletion success");
 		}else {
