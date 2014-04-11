@@ -109,12 +109,12 @@ public class Test3 {
 					if (fnbuild.toString().contains("File")) {
 						System.out.println("Creating " + f.getAbsolutePath());
 						String str = rootDirectory + "\\" + fnbuild.toString();
-						str.replaceAll(File.pathSeparator, "\\");
+						str.replaceAll(Matcher.quoteReplacement(File.separator), Matcher.quoteReplacement("\\"));
 						fs.createFile(str);
 					}else {
 						System.out.println("Creating " + f.getAbsolutePath());
 						String str = rootDirectory + "\\" + fnbuild.toString();
-						str.replaceAll(File.pathSeparator, "\\");
+						str.replaceAll(Matcher.quoteReplacement(File.separator), Matcher.quoteReplacement("\\"));
 						fs.createDirectory(str);
 					}
 				}
@@ -133,7 +133,7 @@ public class Test3 {
 		}
 		Test3 t = new Test3();
 		t.testSetup();  /* uncomment this when previous tests are run before */
-		if (t.delDir2(args[0])) {
+		if (t.delDir2("\\usr\\"+args[0])) {
 			System.out.println("Deletion success");
 		}else {
 			System.err.println("Deletion fail");

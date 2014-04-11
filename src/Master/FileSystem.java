@@ -9,6 +9,7 @@ import java.util.Hashtable;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Comparator;
+import java.util.regex.Matcher;
 
 public class FileSystem {
 
@@ -122,14 +123,22 @@ public class FileSystem {
 		TFSDirectory parentDir = directoryHash.get(directoryPath);
 		parentDir.subdirectories.remove(directoryPath);
 
+		String dirpath = directoryPath;
+		if (directoryPath.indexOf("\\")==0) {
+			dirpath = directoryPath.replaceFirst(Matcher.quoteReplacement("\\"), " ").trim();
+		}
+		dirpath = dirpath.replaceAll(Matcher.quoteReplacement("\\"), Matcher.quoteReplacement(File.separator));
+		
+		
 		if(directoryHash.containsKey(directoryPath))
 		{
 			fsLogger.beginTransaction("deleteDirectory",directoryPath);
 			TFSDirectory dir = directoryHash.get(directoryPath);
-
+			
 			for(TFSFile file : dir.files)
 			{
-				File f = new File(currentDir + File.pathSeparator + directoryPath + File.pathSeparator + file.fileName);
+				
+				File f = new File(dirpath + File.separator + file.fileName);
 				
 				if (!f.exists()) {
 					fsLogger.removeTransaction();
@@ -151,12 +160,20 @@ public class FileSystem {
 					return false;
 				}
 			}
-
-			for(String subdir : dir.subdirectories)
-			{
-				if (!deleteDirectory(subdir))
-					return false;
+			if (!dir.subdirectories.isEmpty()) {
+				for(String subdir : dir.subdirectories)
+				{
+					if (!deleteDirectory(subdir))
+						return false;
+				}
 			}
+			
+				File f = new File(dirpath);
+				if (f.delete()) {
+					System.out.println(f.getPath() + " is deleted successfully");
+				}
+			
+			
 			
 			fsLogger.commitTransaction();
 		}
