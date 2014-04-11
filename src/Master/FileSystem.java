@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -142,7 +143,56 @@ public class FileSystem {
 		return false;
 	}
 	
-	
+	/**
+	 * Gets a byte array from the offset into file specified and of the size
+	 * specified.
+	 * 
+	 * Gross amount of try/catch, could add throws instead, maybe later.
+	 * 
+	 * @param tfsFilePath
+	 *            Filepath within TFS of file to read.
+	 * @param offset
+	 *            Offset to jump into file.
+	 * @param size
+	 *            Size of byte array to read.
+	 * @return Byte array read.
+	 */
+	public byte[] readBytesFromFile(String tfsFilePath, int offset, int size) {
+		byte[] bytesRead = new byte[size];
+		File check = new File(currentDir + tfsFilePath);
+		RandomAccessFile file = null;
+
+		if (!check.exists()) {
+			System.err.println("File specified does not exist.");
+			return null;
+		}
+
+		try {
+			file = new RandomAccessFile(currentDir + tfsFilePath, "r");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		try {
+			if (file.length() > offset) {
+				file.seek(offset);
+			} else {
+				return null;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			file.read(bytesRead);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			file.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return bytesRead;
+	}
 
 	public boolean createDirectory(String directoryName)
 	{
