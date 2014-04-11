@@ -20,7 +20,7 @@ import Master.FileSystem;
  *  */
 
 public class Test5 {
-	public static String rootDirectory = "\\";
+	public static String rootDirectory = "";
 	public FileSystem fs;
 
 	public Test5() {
