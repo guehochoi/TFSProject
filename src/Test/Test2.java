@@ -34,7 +34,11 @@ public class Test2 {
 			fileName = "\\File" + i + ".txt";
 			fs.createFile(rootDir + fileName);
 		}
-
+		
+		if(fs.getSubdirectories(rootDir) == null){
+			System.err.println("Directories did not exist.  Files may not have been created.");
+			return;
+		}
 		for (String subDir : fs.getSubdirectories(rootDir)) {
 				createFiles(numFiles,subDir);
 		}
