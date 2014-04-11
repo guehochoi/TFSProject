@@ -293,6 +293,36 @@ public class FileSystem {
 
 		return true;
 	}
+	
+	
+	public boolean deleteFile(String filepath) {
+		
+		File f= new File(filepath);
+		
+		if (!f.exists()) {
+			fsLogger.removeTransaction();
+			System.err.println("Error: "+f.getPath()+" not exist");
+			return false;
+		}
+
+		if (!f.isFile()) {
+			fsLogger.removeTransaction();
+			System.err.println("Error: "+f.getPath()+" is not a file");
+			return false;
+		}
+
+		if (f.delete()) {
+			System.out.println(f.getPath() + " is deleted successfully");
+		}else {
+			fsLogger.removeTransaction();
+			System.err.println("Error: "+f.getPath()+" failed to delete");
+			return false;
+		}
+		
+		return true;
+	}
+	
+	
 
 	public boolean writeFile(String filename, byte[] data) {
 		String directoryPath = getDirectoryPath(filename);
