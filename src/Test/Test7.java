@@ -46,7 +46,7 @@ public class Test7 {
 			System.err.println("Invalid number of arguments.");
 		}
 		String tfsFileName = args[0];
-		t7.countFilesContained("\\usr\\" + tfsFileName, 0, 4);
+		t7.countFilesContained(tfsFileName, 0, 4);
 		System.out.println("Files contained in " + tfsFileName + " = " + t7.fileCount);
 	}
 
