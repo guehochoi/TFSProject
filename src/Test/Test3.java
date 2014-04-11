@@ -3,6 +3,7 @@ package Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Stack;
+import java.util.regex.Matcher;
 
 import Master.FileSystem;
 
@@ -70,24 +71,27 @@ public class Test3 {
 	 * 
 	 */
 	public boolean delDir2(String dirpath) {
-		return fs.deleteDirectory(dirpath);
+		String str = dirpath;
+		str = str.replaceAll("/+", Matcher.quoteReplacement("\\"));
+		return fs.deleteDirectory(str);
 	}
 	
 	
 	public void testSetup() {
 		
 		String filesToCreate[] = {
-				"usr\\1\\2\\File2",
-				"usr\\1\\2\\File3",
-				"usr\\1\\2\\4\\File1",
-				"usr\\1\\2\\4\\File2",
-				"usr\\1\\2\\4\\File3",
-				"usr\\1\\2\\5\\File1",
-				"usr\\1\\2\\5\\File2",
-				"usr\\1\\2\\5\\File3"
+				"1\\2\\File2",
+				"1\\2\\File3",
+				"1\\2\\4\\File1",
+				"1\\2\\4\\File2",
+				"1\\2\\4\\File3",
+				"1\\2\\5\\File1",
+				"1\\2\\5\\File2",
+				"1\\2\\5\\File3"
 		};
 		
 		File f = null;
+		fs.createDirectory(rootDirectory);
 		
 		for (String fn : filesToCreate) {
 			
@@ -106,7 +110,7 @@ public class Test3 {
 						System.out.println("Creating " + f.getAbsolutePath());
 						String str = rootDirectory + "\\" + fnbuild.toString();
 						str.replaceAll(File.pathSeparator, "\\");
-						fs.createFile(fnbuild.toString());
+						fs.createFile(str);
 					}else {
 						System.out.println("Creating " + f.getAbsolutePath());
 						String str = rootDirectory + "\\" + fnbuild.toString();
