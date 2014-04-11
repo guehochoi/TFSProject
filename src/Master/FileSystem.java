@@ -162,36 +162,34 @@ public class FileSystem {
 		File check = new File(currentDir + tfsFilePath);
 		RandomAccessFile file = null;
 
+		String directoryPath = getDirectoryPath(tfsFilePath);
+
 		if (!check.exists()) {
 			System.err.println("File specified does not exist.");
 			return null;
 		}
 
-		try {
-			file = new RandomAccessFile(currentDir + tfsFilePath, "r");
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		try {
-			if (file.length() > offset) {
-				file.seek(offset);
-			} else {
-				return null;
+		if (directoryHash.containsKey(directoryPath)
+				&& isValidFileName(tfsFilePath)) {
+			try {
+				file = new RandomAccessFile(currentDir + tfsFilePath, "r");
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+			try {
+				if (file.length() > offset) {
+					file.seek(offset);
+					file.read(bytesRead);
+					file.close();
+				} else {
+					return null;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return bytesRead;
 		}
-		try {
-			file.read(bytesRead);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			file.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return bytesRead;
+		return null;
 	}
 
 	public boolean createDirectory(String directoryName)
