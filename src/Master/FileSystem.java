@@ -191,8 +191,12 @@ public class FileSystem {
 			
 			for(TFSFile file : dir.files)
 			{
-				
-				File f = new File(dirpath + File.separator + file.fileName.substring(file.fileName.lastIndexOf('\\')+1));
+				File f = null;
+				if (file.fileName.contains("\\")) {
+					f = new File(dirpath + File.separator + file.fileName.substring(file.fileName.lastIndexOf('\\')+1));
+				}else {
+					 f= new File(dirpath + File.separator + file.fileName);
+				}
 				
 				if (!f.exists()) {
 					fsLogger.removeTransaction();
