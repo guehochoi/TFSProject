@@ -60,5 +60,6 @@ public class Test2 {
 			dirPath = rootPath + "\\" + dirPath;
 		}
 		t2.createFiles(numFiles, dirPath);
+		System.out.println("Files Created.");
 	}
 }
