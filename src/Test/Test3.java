@@ -1,6 +1,7 @@
 package Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Stack;
 
 import Master.FileSystem;
@@ -72,12 +73,62 @@ public class Test3 {
 		return fs.deleteDirectory(dirpath);
 	}
 	
+	
+	public void testSetup() {
+		
+		String filesToCreate[] = {
+				"usr\\1\\2\\File2",
+				"usr\\1\\2\\File3",
+				"usr\\1\\2\\4\\File1",
+				"usr\\1\\2\\4\\File2",
+				"usr\\1\\2\\4\\File3",
+				"usr\\1\\2\\5\\File1",
+				"usr\\1\\2\\5\\File2",
+				"usr\\1\\2\\5\\File3"
+		};
+		
+		File f = null;
+		
+		for (String fn : filesToCreate) {
+			
+			String[] split = fn.split("\\\\");
+			for (int i=0; i < split.length; i++) {
+				StringBuilder fnbuild = new StringBuilder();
+				for (int j=0; j <= i; j++) {
+					if (j==0)
+						fnbuild.append(split[j]);
+					else 
+						fnbuild.append(File.separator + split[j]);
+				}
+				f = new File(fnbuild.toString());
+				if (!f.exists()) {
+					if (fnbuild.toString().contains("File")) {
+						System.out.println("Creating " + f.getAbsolutePath());
+						String str = rootDirectory + "\\" + fnbuild.toString();
+						str.replaceAll(File.pathSeparator, "\\");
+						fs.createFile(fnbuild.toString());
+					}else {
+						System.out.println("Creating " + f.getAbsolutePath());
+						String str = rootDirectory + "\\" + fnbuild.toString();
+						str.replaceAll(File.pathSeparator, "\\");
+						fs.createDirectory(str);
+					}
+				}
+			}			
+		}
+		
+		
+		
+	}
+	
 	public static void main(String args[]) {
+		
 		if (args.length != 1) {
 			System.out.println("invalid argument");
 			System.exit(1);
 		}
 		Test3 t = new Test3();
+		t.testSetup();
 		if (t.delDir2(args[0])) {
 			System.out.println("Deletion success");
 		}else {
