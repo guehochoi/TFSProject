@@ -229,7 +229,7 @@ public class FileSystem {
 
 		if(directoryHash.containsKey(directoryPath))
 		{
-			fsLogger.beginTransaction("DeleteDirectory", directoryPath);
+			fsLogger.beginTransaction("deleteDirectory", directoryPath);
 			TFSDirectory dir = directoryHash.get(directoryPath);
 
 			for(TFSFile file : dir.files)
@@ -256,7 +256,7 @@ public class FileSystem {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			directoryHash.remove(dir);
+			directoryHash.remove(directoryPath);
 			fsLogger.commitTransaction();
 		}
 	}
