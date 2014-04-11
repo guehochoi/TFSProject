@@ -104,7 +104,7 @@ public class Test3 {
 					else 
 						fnbuild.append(File.separator + split[j]);
 				}
-				f = new File(fnbuild.toString());
+				f = new File("usr"+File.separator+fnbuild.toString());
 				if (!f.exists()) {
 					if (fnbuild.toString().contains("File")) {
 						System.out.println("Creating " + f.getAbsolutePath());
@@ -132,7 +132,7 @@ public class Test3 {
 			System.exit(1);
 		}
 		Test3 t = new Test3();
-		t.testSetup();
+		t.testSetup();  /* uncomment this when previous tests are run before */
 		if (t.delDir2(args[0])) {
 			System.out.println("Deletion success");
 		}else {
