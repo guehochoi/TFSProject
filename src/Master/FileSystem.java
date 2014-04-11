@@ -10,8 +10,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
@@ -220,70 +222,42 @@ public class FileSystem {
 		return false;
 	}
 
-	public boolean deleteDirectory(String directoryPath)
+	public void deleteDirectory(String directoryPath)
 	{
 		TFSDirectory parentDir = directoryHash.get(directoryPath);
 		parentDir.subdirectories.remove(directoryPath);
 
-		String dirpath = directoryPath;
-		if (directoryPath.indexOf("\\")==0) {
-			dirpath = directoryPath.replaceFirst(Matcher.quoteReplacement("\\"), " ").trim();
-		}
-		dirpath = dirpath.replaceAll(Matcher.quoteReplacement("\\"), Matcher.quoteReplacement(File.separator));
-
-
 		if(directoryHash.containsKey(directoryPath))
 		{
-			fsLogger.beginTransaction("deleteDirectory",directoryPath);
 			TFSDirectory dir = directoryHash.get(directoryPath);
 
 			for(TFSFile file : dir.files)
 			{
-
-				File f = new File(dirpath + File.separator + file.fileName);
-
-				if (!f.exists()) {
-					fsLogger.removeTransaction();
-					System.err.println("Error: "+f.getPath()+" not exist");
-					return false;
-				}
-
-				if (!f.isFile()) {
-					fsLogger.removeTransaction();
-					System.err.println("Error: "+f.getPath()+" is not a file");
-					return false;
-				}
-
-				if (f.delete()) {
-					System.out.println(f.getPath() + " is deleted successfully");
-				}else {
-					fsLogger.removeTransaction();
-					System.err.println("Error: "+f.getPath()+" failed to delete");
-					return false;
-				}
-			}
-			if (!dir.subdirectories.isEmpty()) {
-				for(String subdir : dir.subdirectories)
-				{
-					if (!deleteDirectory(subdir)) {
-						return false;
-					}
+				Path path = Paths.get(currentDir + file.fileName);
+				try {
+				    Files.delete(path);
+				} catch (NoSuchFileException x) {
+				    System.err.format("%s: no such" + " file or directory%n", path);
+				} catch (DirectoryNotEmptyException x) {
+				    System.err.format("%s not empty%n", path);
+				} catch (IOException x) {
+				    // File permission problems are caught here.
+				    System.err.println(x);
 				}
 			}
 
-			File f = new File(dirpath);
-			if (f.delete()) {					
-				System.out.println(f.getPath() + " is deleted successfully");
-			}else {
-				fsLogger.removeTransaction();
-				System.err.println("Error: "+f.getPath()+" failed to delete");
-				return false;
+			for(String subdir : dir.subdirectories)
+			{
+				deleteDirectory(subdir);
 			}
-
-			fsLogger.commitTransaction();
+			try {
+				Files.delete(Paths.get(currentDir + directoryPath));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			directoryHash.remove(dir);
 		}
-
-		return true;
 	}
 
 	public boolean writeFile(String filename, byte[] data) {
