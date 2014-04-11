@@ -296,7 +296,7 @@ public class FileSystem {
 	
 	
 	public boolean deleteFile(String filepath) {
-		
+		fsLogger.beginTransaction("deleteFile",filepath);
 		File f= new File(filepath);
 		
 		if (!f.exists()) {
@@ -312,6 +312,7 @@ public class FileSystem {
 		}
 
 		if (f.delete()) {
+			fsLogger.commitTransaction();
 			System.out.println(f.getPath() + " is deleted successfully");
 		}else {
 			fsLogger.removeTransaction();
