@@ -48,6 +48,7 @@ public class Test1 {
 		directoryCreate(maxDepth, currDir * 2, myDir);
 		directoryCreate(maxDepth, (currDir * 2) + 1, myDir);
 	}
+	
 
 	public static void main(String[] args) {
 		Test1 test1 = new Test1();

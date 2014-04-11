@@ -3,17 +3,17 @@ package Master;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 
 public class FSLogger implements Runnable {
 	
-	private FileSystem fs;
 	private final Semaphore sema = new Semaphore(0);
 	private boolean exitLogger = false;
 	
@@ -23,21 +23,30 @@ public class FSLogger implements Runnable {
 	private final File uncommitLog = new File("uncommited.txt");
 	private final File commitLog = new File("commited.txt");
 	
+	
 	private Thread t;
 	private Thread parentThread;
+	private Timer timer = new Timer();
 	
 	private List<String[]> commitList = new LinkedList<String[]>();
 	
 	public FSLogger(FileSystem fs)
-	{
-		this.fs = fs;
-	}
+	{}
 
 	@Override
 	public void run() 
 	{
 		while(exitLogger == false)
 		{
+			timer.schedule(new TimerTask() {
+				  public void run() {
+					  if(commitList.isEmpty())
+					  {
+						  sema.release();
+					  }
+				  }
+				}, 500);
+
 			try 
 			{
 				sema.acquire();
@@ -65,6 +74,9 @@ public class FSLogger implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		
+		timer.cancel();
+		timer.purge();
 	}
 	
 	public void start()

@@ -29,15 +29,11 @@ public class Test2 {
 
 	public void createFiles(int numFiles, String rootDir) {
 		
-		//Only run this on first rootdir.
-		//if(rootBool){
 		for (int i = 1; i <= numFiles; i++) {
 			String fileName = "";
 			fileName = "\\File" + i + ".txt";
 			fs.createFile(rootDir + fileName);
 		}
-			//rootBool = false;
-		//}
 
 		for (String subDir : fs.getSubdirectories(rootDir)) {
 				createFiles(numFiles,subDir);
@@ -45,12 +41,13 @@ public class Test2 {
 	}
 
 	public static void main(String[] args) {
-		String dirPath = "\\usr\\";
+		String rootPath = "\\usr";
+		String dirPath = "";
 		int numFiles = 0;
 		Test2 t2 = new Test2();
 
 		if (args.length > 0) {
-			dirPath = dirPath + args[0];
+			dirPath = args[0];
 			try {
 				numFiles = Integer.parseInt(args[1]);
 			} catch (NumberFormatException e) {
@@ -58,6 +55,9 @@ public class Test2 {
 						+ " must be an integer.");
 				System.exit(1);
 			}
+		}
+		if(!dirPath.isEmpty()){
+			dirPath = rootPath + "\\" + dirPath;
 		}
 		t2.createFiles(numFiles, dirPath);
 	}

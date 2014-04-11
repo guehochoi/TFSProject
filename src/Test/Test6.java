@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+
+import Master.FileSystem;
 
 /*	Test6:  Append the size and content of a file stored on the local machine in
  *	a target TFS file specified by its path.
@@ -29,35 +32,47 @@ import java.nio.file.Path;
 public class Test6 {
 	
 	public static String tfsRoot = "\\usr";
+	FileSystem fs = new FileSystem();
 	
 	public Test6(){
 		
 	}
 	
+	//	We'll always be appending to the end of the file. No need for offset now.
+	public void appendToFile(String tfsPath, byte[] dataToAppend, int dataSize){
+		fs.appendDataToFile(tfsRoot + "\\" + tfsPath, dataToAppend, dataSize);
+	}
 	
 	public static void main(String[] args) {
 		Test6 t6 = new Test6();
 		
 		String localFile = "";
 		String tfsFile = "";
-		byte[] data = null;
+		byte[] localData = null;
+		int localFileSize = 0;
 
 		if (args.length != 2) {
 			System.err.println("Check arguments.");
 		}
 		
 		localFile = args[0];
-		tfsFile = tfsRoot + args[1];
+		tfsFile = args[1];
+		
 		
 		//Get number of bytes in local file.
 		Path localPath = Paths.get(localFile);
+		
 		try {
-			data = Files.readAllBytes(localPath);
+			localData = Files.readAllBytes(localPath);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		System.out.println(data);
+		localFileSize = localData.length;
+		
+		
+		t6.appendToFile(tfsFile, localData, localFileSize);
+		
 		
 	}
 	
