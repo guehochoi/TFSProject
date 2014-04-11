@@ -238,40 +238,37 @@ public class FileSystem {
 		return true;
 	}
 	
-	public boolean writeFile(byte[] content, String filename) {
+	public boolean writeFile(String filename, byte[] data) {
 		String directoryPath = getDirectoryPath(filename);
 
 		if(directoryHash.containsKey(directoryPath) && isValidFileName(filename))
 		{
-			fsLogger.beginTransaction("createFile",filename);
-			TFSFile file = new TFSFile();
-			file.fileName = trimFileName(filename);
+			fsLogger.beginTransaction("writeFile",filename);
 
 			try {
 				File myFile = new File(currentDir + filename);
 				
-				if(myFile.exists())
+				if(!myFile.exists())
 				{
 					fsLogger.removeTransaction();
-					System.err.println("Tried to create a file that already existed.");
+					System.err.println("Attempt to write to a file that does not exist");
 					return false;
 				}
 				
-				myFile.createNewFile();
+				FileOutputStream fs = new FileOutputStream(myFile);
+				fs.write(data);
+				fs.close();
+				fsLogger.commitTransaction();
+				return true;
 			} catch (IOException e) {
+				fsLogger.removeTransaction();
 				e.printStackTrace();
+				return false;
 			}
-			
-			file.fileContent = content;
-			TFSDirectory dir = directoryHash.get(directoryPath);
-			dir.files.add(file);
-			fsLogger.commitTransaction();
-			return true;
 		}
 
 		return false;
 	}
-
 
 	private String getDirectoryPath(String path)
 	{
