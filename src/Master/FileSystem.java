@@ -223,6 +223,10 @@ public class FileSystem {
 	public boolean deleteDirectory(String directoryPath)
 	{
 		TFSDirectory parentDir = directoryHash.get(directoryPath);
+		if (parentDir == null) {
+			System.err.println("No such path is in the hash: either the directory not exists, or backup file corrupted");
+			return false;
+		}
 		parentDir.subdirectories.remove(directoryPath);
 
 		String dirpath = directoryPath;
