@@ -1,7 +1,6 @@
 package Master;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -9,8 +8,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.ByteBuffer;
@@ -28,13 +25,12 @@ public class FileSystem {
 	public final String currentDir = System.getProperty("user.dir");
 	private final FSLogger fsLogger = new FSLogger(this);
 
-	private class TFSFile
+	public class TFSFile
 	{
 		String fileName = "";
-		byte[] fileContent;
 	}
 
-	private class TFSDirectory
+	public class TFSDirectory
 	{
 		SortedSet<TFSFile> files;
 		SortedSet<String> subdirectories;
@@ -199,9 +195,6 @@ public class FileSystem {
 		if(directoryHash.containsKey(parentDir) && isValidDirectoryName(directoryName))
 		{
 			fsLogger.beginTransaction("createDirectory",directoryName);
-			TFSDirectory parentTFSDir = directoryHash.get(parentDir);
-			parentTFSDir.subdirectories.add(directoryName);
-			directoryHash.put(directoryName, new TFSDirectory());
 
 			File myDir = new File(currentDir + directoryName);
 
@@ -210,8 +203,11 @@ public class FileSystem {
 				fsLogger.removeTransaction();
 				System.err.println("Tried to create a directory that already existed.");
 				return false;
-			}
+			} 
 
+			TFSDirectory parentTFSDir = directoryHash.get(parentDir);
+			parentTFSDir.subdirectories.add(directoryName);
+			directoryHash.put(directoryName, new TFSDirectory());
 			myDir.mkdir();
 			fsLogger.commitTransaction();
 			return true;
