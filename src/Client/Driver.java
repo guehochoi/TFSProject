@@ -73,6 +73,7 @@ public class Driver {
 			break;
 		case HELP:
 			printHelp();
+			break;
 		case MKDIR:
 			if(args.length < 2)
 			{
