@@ -7,7 +7,9 @@ import java.util.Hashtable;
 
 public class Driver {
 	
-	public enum Command {CD,EXIT,HELP,LS,MKDIR,MKFILE,PWD,RM,RMDIR,UNKNOWN, UNIT1};
+	public enum Command {
+		CD, EXIT, HELP, LS, MKDIR, MKFILE, PWD, RM, RMDIR, UNKNOWN, UNIT1, UNIT2, UNIT3, UNIT4, UNIT5, UNIT6, UNIT7
+	};
 
 	Client myClient = new Client();
 	Hashtable<String,Command> commandHash = new Hashtable<String,Command>();
@@ -139,6 +141,19 @@ public class Driver {
 				unit1(Integer.parseInt(args[1]), 1, "");
 			}
 			break;
+		case UNIT2:
+			break;
+		case UNIT3:
+			break;
+		case UNIT4:
+			break;
+		case UNIT5:
+			break;
+		case UNIT6:
+			break;
+		case UNIT7:
+			break;
+			
 		default:
 			break;
 		}
@@ -158,6 +173,12 @@ public class Driver {
 		commandHash.put("rmdir", Command.RMDIR);
 		commandHash.put("pwd", Command.PWD);
 		commandHash.put("unit1", Command.UNIT1);
+		commandHash.put("unit2", Command.UNIT2);
+		commandHash.put("unit3", Command.UNIT3);
+		commandHash.put("unit4", Command.UNIT4);
+		commandHash.put("unit5", Command.UNIT5);
+		commandHash.put("unit6", Command.UNIT6);
+		commandHash.put("unit7",  Command.UNIT7);
 	}
 
 	public void printHelp()
