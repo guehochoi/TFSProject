@@ -153,7 +153,10 @@ public class Driver {
 			}
 			break;
 		case UNIT3:
-				unit3();
+			if(args.length < 2){
+				System.out.println("Invalid input to unit1 command (must specify number of directories to create)");
+			}
+				unit3(args[1]);
 			break;
 		case UNIT4:
 			break;
@@ -230,8 +233,8 @@ public class Driver {
 		}*/
 	}
 	
-	public void unit3(){
-		
+	public void unit3(String directoryName){
+		myClient.removeDirectory(directoryName);
 	}
 
 }	

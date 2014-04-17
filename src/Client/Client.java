@@ -196,13 +196,13 @@ public class Client {
 
 		if(directoryName.charAt(0) == '\\')
 		{
-			queryCommand = queryCommand.concat(queryCommand + directoryName);
+			queryCommand = queryCommand.concat(directoryName);
 		}
 		else
 		{
 			if(currentDir.equals("\\"))
 			{
-				queryCommand = queryCommand.concat(currentDir + directoryName);
+				queryCommand = queryCommand.concat(directoryName);
 			}
 			else
 			{
