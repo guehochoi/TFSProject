@@ -142,8 +142,17 @@ public class Driver {
 			}
 			break;
 		case UNIT2:
+			if(args.length < 2)
+			{
+				System.out.println("Invalid input to unit1 command (must specify number of directories to create)");
+			}
+			else 
+			{
+				unit2(args[2], Integer.parseInt(args[1]));
+			}
 			break;
 		case UNIT3:
+				unit3();
 			break;
 		case UNIT4:
 			break;
@@ -202,6 +211,26 @@ public class Driver {
 
 		unit1(maxDepth, currDir * 2, myDir);
 		unit1(maxDepth, (currDir * 2) + 1, myDir);
+	}
+	
+	public void unit2(String rootDir, int numFiles){
+		for (int i = 1; i <= numFiles; i++) {
+			String fileName = "";
+			fileName = "\\File" + i + ".txt";
+			myClient.createFile(rootDir + fileName);
+		}
+		//TODO: Add getSubDirectories call to master
+		/*if(myClient.getSubdirectories(rootDir) == null){
+			System.err.println("Directories did not exist.  Files may not have been created.");
+			return;
+		}
+		for (String subDir : myClient.getSubdirectories(rootDir)) {
+				unit2(numFiles,subDir);
+		}*/
+	}
+	
+	public void unit3(){
+		
 	}
 
 }	
