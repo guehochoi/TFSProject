@@ -1,8 +1,6 @@
 package Test;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Stack;
 import java.util.regex.Matcher;
 
 import Master.FileSystem;
@@ -44,12 +42,10 @@ public class Test3 {
 	 * @return status
 	 */
 	public status delDir(String dirpath) {
-		String abspath = rootDirectory + File.separator + dirpath;
 		// ask master if abspath exists
 			// if not, return status.PATH_NOT_EXIST
 		// if the directory is root directory, (eg. null or space)
 			// return ATTEMPT_ON_ROOT
-		String currentPath = abspath;
 		while (true) {
 			// if there exists subdirectory in current path
 				// currentPath = subdirectory path
