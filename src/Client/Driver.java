@@ -7,7 +7,7 @@ import java.util.Hashtable;
 
 public class Driver {
 	
-	public enum Command {CD,EXIT,HELP,LS,MKDIR,MKFILE,PWD,RM,RMDIR,UNKNOWN};
+	public enum Command {CD,EXIT,HELP,LS,MKDIR,MKFILE,PWD,RM,RMDIR,UNKNOWN, UNIT1};
 
 	Client myClient = new Client();
 	Hashtable<String,Command> commandHash = new Hashtable<String,Command>();
@@ -129,6 +129,16 @@ public class Driver {
 			break;
 		case UNKNOWN:
 			break;
+		case UNIT1:
+			if(args.length < 2)
+			{
+				System.out.println("Invalid input to unit1 command (must specify number of directories to create)");
+			}
+			else 
+			{
+				unit1(Integer.parseInt(args[1]), 1, "");
+			}
+			break;
 		default:
 			break;
 		}
@@ -147,6 +157,7 @@ public class Driver {
 		commandHash.put("rm", Command.RM);
 		commandHash.put("rmdir", Command.RMDIR);
 		commandHash.put("pwd", Command.PWD);
+		commandHash.put("unit1", Command.UNIT1);
 	}
 
 	public void printHelp()
@@ -159,4 +170,18 @@ public class Driver {
 		System.out.println("mkfile - creates a file at the specified path (or the current directory if not specified)");
 		System.out.println("pwd - prints the current working directory");
 	}
-}
+	
+	public void unit1(int maxDepth, int currDir, String myDir) {
+		if (currDir > maxDepth) {
+			return;
+		}
+
+		myDir = myDir + currDir + "\\";		
+		myClient.createDirectory(myDir);
+
+		unit1(maxDepth, currDir * 2, myDir);
+		unit1(maxDepth, (currDir * 2) + 1, myDir);
+	}
+
+}	
+
