@@ -123,7 +123,8 @@ public class Master {
 			return ret;
 		}
 		
-		return null;
+		String ret[] = new String[1];
+		return ret;
 	}
 	
 	private String[] createDirectory(String command, int spaceIndex)

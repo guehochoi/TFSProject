@@ -1,6 +1,8 @@
 package Client;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -9,8 +11,12 @@ import java.net.Socket;
 public class Client {
 	private String masterIpAddress = "localhost";
 	private int    masterPort = 666;
+	private String chunkServerIpAddress = "localhost";
+	private int    chunkServerPort = 667;
+
 	private String currentDir = "\\";
 	Socket masterConnection;
+	Socket chunkServerConnection;
 
 	public Client()
 	{
@@ -24,7 +30,7 @@ public class Client {
 	
 	public String[] lsDirectory()
 	{
-		return sendQuery("ls " + currentDir);
+		return sendMasterQuery("ls " + currentDir);
 	}
 	
 	public boolean changeDirectory(String newDirectory)
@@ -64,11 +70,19 @@ public class Client {
 			}
 		}
 		
-		String result[] = sendQuery(queryCommand);
+		String result[] = sendMasterQuery(queryCommand);
 
 		if(result[0].contains("true"))
 		{
-			currentDir = currentDir + newDirectory;
+			if(newDirectory.charAt(0) == '\\')
+			{
+				currentDir = newDirectory;
+			}
+			else
+			{
+				currentDir = currentDir + newDirectory;
+			}
+
 			return true;
 		}
 		else
@@ -98,7 +112,7 @@ public class Client {
 
 		}
 		
-		String[] result = sendQuery(queryCommand);
+		String[] result = sendMasterQuery(queryCommand);
 
 		if(result[0].contains("true"))
 		{
@@ -116,7 +130,7 @@ public class Client {
 
 		if(directoryPath.charAt(0) == '\\')
 		{
-			queryCommand = queryCommand.concat(queryCommand + directoryPath);
+			queryCommand = queryCommand.concat(directoryPath);
 		}
 		else
 		{
@@ -131,7 +145,7 @@ public class Client {
 
 		}
 		
-		String[] result = sendQuery(queryCommand);
+		String[] result = sendMasterQuery(queryCommand);
 
 		if(result[0].contains("true"))
 		{
@@ -164,7 +178,7 @@ public class Client {
 
 		}
 		
-		String[] result = sendQuery(queryCommand);
+		String[] result = sendMasterQuery(queryCommand);
 
 		if(result[0].contains("true"))
 		{
@@ -197,7 +211,7 @@ public class Client {
 
 		}
 		
-		String[] result = sendQuery(queryCommand);
+		String[] result = sendMasterQuery(queryCommand);
 
 		if(result[0].contains("true"))
 		{
@@ -208,8 +222,36 @@ public class Client {
 			return false;
 		}
 	}
+
+	public byte[] sendChunkServerQuery(byte[] data)
+	{
+		if(chunkServerConnection == null || chunkServerConnection.isClosed())
+		{
+			beginChunkServerSession();
+		}
+		
+		try {
+			DataOutputStream out = new DataOutputStream(chunkServerConnection.getOutputStream());
+			
+			out.write(data);
+			out.flush();
+			
+			DataInputStream in = new DataInputStream(chunkServerConnection.getInputStream());
+
+			byte[] ret = new byte[in.readInt()];
+			in.readFully(ret);
+
+			out.close();
+			in.close();
+			return ret;
+		} catch (IOException e) {
+			System.err.println("Error reading/writing to chunk server connection: " + e.getMessage());
+		}
+
+		return null;
+	}
 	
-	private String[] sendQuery(String query)
+	private String[] sendMasterQuery(String query)
 	{
 		if(masterConnection == null || masterConnection.isClosed())
 		{
@@ -240,6 +282,7 @@ public class Client {
 
 		return null;
 	}
+
 	
 	public void setMasterDetails(String ipAddress, int port)
 	{
@@ -251,6 +294,18 @@ public class Client {
 	{
 		try {
 			masterConnection = new Socket(masterIpAddress,masterPort);
+		} catch (IOException e) {
+			System.err.println("Unable to connect to master server on " + masterIpAddress + ":" + masterPort);
+			System.err.println("Check your connection to the server and try again");
+			System.exit(0);
+		}
+	}
+	
+	
+	public void beginChunkServerSession()
+	{
+		try {
+			chunkServerConnection = new Socket(chunkServerIpAddress,chunkServerPort);
 		} catch (IOException e) {
 			System.err.println("Unable to connect to master server on " + masterIpAddress + ":" + masterPort);
 			System.err.println("Check your connection to the server and try again");
