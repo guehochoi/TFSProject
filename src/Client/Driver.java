@@ -197,7 +197,7 @@ public class Driver {
 			return;
 		}
 
-		myDir = myDir + currDir + "\\";		
+		myDir = myDir + "\\" +  currDir;		
 		myClient.createDirectory(myDir);
 
 		unit1(maxDepth, currDir * 2, myDir);
