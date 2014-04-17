@@ -56,11 +56,11 @@ public class Client {
 		{
 			if(currentDir.charAt(currentDir.length()-1) == '\\')
 			{
-				queryCommand = queryCommand.concat(currentDir + newDirectory);
+				queryCommand = queryCommand.concat(newDirectory);
 			}
 			else
 			{
-				queryCommand = queryCommand.concat(currentDir + "\\" + newDirectory);
+				queryCommand = queryCommand.concat("\\" + newDirectory);
 			}
 		}
 		
@@ -83,17 +83,17 @@ public class Client {
 
 		if(directoryPath.charAt(0) == '\\')
 		{
-			queryCommand = queryCommand.concat(queryCommand + directoryPath);
+			queryCommand = queryCommand.concat(directoryPath);
 		}
 		else
 		{
 			if(currentDir.equals("\\"))
 			{
-				queryCommand = queryCommand.concat(currentDir + directoryPath);
+				queryCommand = queryCommand.concat(directoryPath);
 			}
 			else
 			{
-				queryCommand = queryCommand.concat(currentDir + "\\" + directoryPath);
+				queryCommand = queryCommand.concat("\\" + directoryPath);
 			}
 
 		}
@@ -122,7 +122,7 @@ public class Client {
 		{
 			if(currentDir.equals("\\"))
 			{
-				queryCommand = queryCommand.concat(currentDir + directoryPath);
+				queryCommand = queryCommand.concat(directoryPath);
 			}
 			else
 			{
