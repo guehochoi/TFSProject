@@ -7,7 +7,7 @@ import java.util.Hashtable;
 
 public class Driver {
 	
-	public enum Command {CD,EXIT,HELP,LS,MKDIR,MKFILE,PWD,UNKNOWN};
+	public enum Command {CD,EXIT,HELP,LS,MKDIR,MKFILE,PWD,RM,RMDIR,UNKNOWN};
 
 	Client myClient = new Client();
 	Hashtable<String,Command> commandHash = new Hashtable<String,Command>();
@@ -107,6 +107,26 @@ public class Driver {
 		case PWD:
 			System.out.println(myClient.printWorkingDirectory());
 			break;
+		case RM:
+			if(args.length < 2)
+			{
+				System.out.println("Invalid input to rm command (must specify file path or name)");
+			}
+			else if(!myClient.removeFile(args[1]))
+			{
+				System.out.println("Unable to remove file " + args[1]);
+			}
+			break;
+		case RMDIR:
+			if(args.length < 2)
+			{
+				System.out.println("Invalid input to rmdir command (must specify file path or name)");
+			}
+			else if(!myClient.removeDirectory(args[1]))
+			{
+				System.out.println("Unable to remove directory " + args[1]);
+			}
+			break;
 		case UNKNOWN:
 			break;
 		default:
@@ -124,6 +144,8 @@ public class Driver {
 		commandHash.put("ls", Command.LS);
 		commandHash.put("mkdir", Command.MKDIR);
 		commandHash.put("mkfile", Command.MKFILE);
+		commandHash.put("rm", Command.RM);
+		commandHash.put("rmdir", Command.RMDIR);
 		commandHash.put("pwd", Command.PWD);
 	}
 
@@ -134,6 +156,7 @@ public class Driver {
 		System.out.println("exit - exits the program");
 		System.out.println("ls - list contents of current directory");
 		System.out.println("mkdir - creates a directory at the specified path (or the current directory if not specified)");
+		System.out.println("mkfile - creates a file at the specified path (or the current directory if not specified)");
 		System.out.println("pwd - prints the current working directory");
 	}
 }

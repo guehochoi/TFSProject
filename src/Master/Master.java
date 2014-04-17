@@ -75,6 +75,10 @@ public class Master {
 			return createDirectory(command, spaceIndex);
 		case "createFile" :
 			return createFile(command, spaceIndex);
+		case "removeFile" :
+			return removeFile(command, spaceIndex);
+		case "removeDirectory" :
+			return removeDirectory(command, spaceIndex);
 		}
 
 		return null;
@@ -143,6 +147,38 @@ public class Master {
 		String[] ret = new String[1];
 
 		if(fs.createFile(command.substring(spaceIndex+1,command.length())))
+		{
+			ret[0] = "true";
+			return ret;
+		}
+		else
+		{
+			ret[0] = "false";
+			return ret;
+		}
+	}
+
+	private String[] removeFile(String command, int spaceIndex)
+	{
+		String[] ret = new String[1];
+
+		if(fs.deleteFile(command.substring(spaceIndex+1,command.length())))
+		{
+			ret[0] = "true";
+			return ret;
+		}
+		else
+		{
+			ret[0] = "false";
+			return ret;
+		}
+	}
+
+	private String[] removeDirectory(String command, int spaceIndex)
+	{
+		String[] ret = new String[1];
+
+		if(fs.deleteDirectory(command.substring(spaceIndex+1,command.length())))
 		{
 			ret[0] = "true";
 			return ret;

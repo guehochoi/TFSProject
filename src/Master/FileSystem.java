@@ -218,20 +218,6 @@ public class FileSystem {
 
 	public boolean deleteDirectory(String directoryPath)
 	{
-		TFSDirectory parentDir = directoryHash.get(directoryPath);
-		if (parentDir == null) {
-			System.err.println("No such path is in the hash: either the directory not exists, or backup file corrupted");
-			return false;
-		}
-		parentDir.subdirectories.remove(directoryPath);
-
-		String dirpath = directoryPath;
-		if (directoryPath.indexOf("\\")==0) {
-			dirpath = directoryPath.replaceFirst(Matcher.quoteReplacement("\\"), " ").trim();
-		}
-		dirpath = dirpath.replaceAll(Matcher.quoteReplacement("\\"), Matcher.quoteReplacement(File.separator));
-
-
 		if(directoryHash.containsKey(directoryPath))
 		{
 			fsLogger.beginTransaction("deleteDirectory",directoryPath);
@@ -239,12 +225,7 @@ public class FileSystem {
 
 			for(TFSFile file : dir.files)
 			{
-				File f = null;
-				if (file.fileName.contains("\\")) {
-					f = new File(dirpath + File.separator + file.fileName.substring(file.fileName.lastIndexOf('\\')+1));
-				}else {
-					 f= new File(dirpath + File.separator + file.fileName);
-				}
+				File f = new File(currentDir + directoryPath + "\\" + file.fileName);
 
 				if (!f.exists()) {
 					fsLogger.removeTransaction();
@@ -258,26 +239,24 @@ public class FileSystem {
 					return false;
 				}
 
-				if (f.delete()) {
-					System.out.println(f.getPath() + " is deleted successfully");
-				}else {
+				if (!f.delete()) {
 					fsLogger.removeTransaction();
 					System.err.println("Error: "+f.getPath()+" failed to delete");
 					return false;
 				}
 			}
-			if (!dir.subdirectories.isEmpty()) {
-				for(String subdir : dir.subdirectories)
-				{
-					if (!deleteDirectory(subdir)) {
-						return false;
-					}
+
+			for(String subdir : dir.subdirectories)
+			{
+				if (!deleteDirectory(subdir)) {
+					return false;
 				}
 			}
 
-			File f = new File(dirpath);
+			File f = new File(currentDir + directoryPath);
 			if (f.delete()) {					
-				System.out.println(f.getPath() + " is deleted successfully");
+				TFSDirectory parentDir = directoryHash.get(getDirectoryPath(directoryPath));
+				parentDir.subdirectories.remove(directoryPath);
 			}else {
 				fsLogger.removeTransaction();
 				System.err.println("Error: "+f.getPath()+" failed to delete");
@@ -293,30 +272,47 @@ public class FileSystem {
 	
 	public boolean deleteFile(String filepath) {
 		fsLogger.beginTransaction("deleteFile",filepath);
-		File f= new File(filepath);
+		String parentDir = getDirectoryPath(filepath);
 		
-		if (!f.exists()) {
-			fsLogger.removeTransaction();
-			System.err.println("Error: "+f.getPath()+" not exist");
-			return false;
-		}
+		if(directoryHash.containsKey(parentDir))
+		{
+			TFSDirectory dir = directoryHash.get(parentDir);
+			
+			for(TFSFile f : dir.files)
+			{
+				if(f.fileName.equals(trimFileName(filepath)))
+				{
+					dir.files.remove(f);
+					break;
+				}
+			}
 
-		if (!f.isFile()) {
-			fsLogger.removeTransaction();
-			System.err.println("Error: "+f.getPath()+" is not a file");
-			return false;
-		}
+			File f= new File(currentDir + filepath);
 
-		if (f.delete()) {
-			fsLogger.commitTransaction();
-			System.out.println(f.getPath() + " is deleted successfully");
-		}else {
-			fsLogger.removeTransaction();
-			System.err.println("Error: "+f.getPath()+" failed to delete");
-			return false;
+			if (!f.exists()) {
+				fsLogger.removeTransaction();
+				System.err.println("Error: "+f.getPath()+" not exist");
+				return false;
+			}
+
+			if (!f.isFile()) {
+				fsLogger.removeTransaction();
+				System.err.println("Error: "+f.getPath()+" is not a file");
+				return false;
+			}
+
+			if (f.delete()) {
+				fsLogger.commitTransaction();
+			}else {
+				fsLogger.removeTransaction();
+				System.err.println("Error: "+f.getPath()+" failed to delete");
+				return false;
+			}
+
+			return true;
 		}
 		
-		return true;
+		return false;
 	}
 	
 	

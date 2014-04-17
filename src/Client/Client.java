@@ -143,6 +143,72 @@ public class Client {
 		}
 	}
 	
+	public boolean removeFile(String filepath)
+	{
+		String queryCommand = "removeFile ";
+
+		if(filepath.charAt(0) == '\\')
+		{
+			queryCommand = queryCommand.concat(queryCommand + filepath);
+		}
+		else
+		{
+			if(currentDir.equals("\\"))
+			{
+				queryCommand = queryCommand.concat(currentDir + filepath);
+			}
+			else
+			{
+				queryCommand = queryCommand.concat(currentDir + "\\" + filepath);
+			}
+
+		}
+		
+		String[] result = sendQuery(queryCommand);
+
+		if(result[0].contains("true"))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	public boolean removeDirectory(String directoryName)
+	{
+		String queryCommand = "removeDirectory ";
+
+		if(directoryName.charAt(0) == '\\')
+		{
+			queryCommand = queryCommand.concat(queryCommand + directoryName);
+		}
+		else
+		{
+			if(currentDir.equals("\\"))
+			{
+				queryCommand = queryCommand.concat(currentDir + directoryName);
+			}
+			else
+			{
+				queryCommand = queryCommand.concat(currentDir + "\\" + directoryName);
+			}
+
+		}
+		
+		String[] result = sendQuery(queryCommand);
+
+		if(result[0].contains("true"))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
 	private String[] sendQuery(String query)
 	{
 		if(masterConnection == null || masterConnection.isClosed())
