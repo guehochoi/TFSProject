@@ -4,12 +4,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Hashtable;
 
 public class Driver {
 	
 	public enum Command {
-		CD, EXIT, HELP, LS, MKDIR, MKFILE, PWD, RM, RMDIR, UNKNOWN, UNIT1, UNIT2, UNIT3, UNIT4, UNIT5, UNIT6, UNIT7
+		CD, CP, EXIT, HELP, LS, MKDIR, MKFILE, PWD, RM, RMDIR, UNKNOWN, UNIT1, UNIT2, UNIT3, UNIT4, UNIT5, UNIT6, UNIT7
 	};
 
 	Client myClient = new Client();
@@ -72,6 +75,15 @@ public class Driver {
 				System.out.println(args[1] + ": no such directory");
 			}
 			break;
+		case CP:
+			if(args.length < 3)
+			{
+				System.out.println("Invalid input to cp, please specify local file location and remote file location");
+			}
+			else
+			{
+				copyFile(args[1],args[2]);
+			}
 		case EXIT:
 			break;
 		case HELP:
@@ -168,42 +180,24 @@ public class Driver {
 			break;
 			
 		default:
+	
 			break;
 		}
 		
 		return currentCommand;
 	}
-
-	public void setupHashCommands(Hashtable<String,Command> commandHash)
+	
+	public void copyFile(String localPath, String remotePath)
 	{
-		commandHash.put("cd", Command.CD);
-		commandHash.put("exit", Command.EXIT);
-		commandHash.put("help", Command.HELP);
-		commandHash.put("ls", Command.LS);
-		commandHash.put("mkdir", Command.MKDIR);
-		commandHash.put("mkfile", Command.MKFILE);
-		commandHash.put("rm", Command.RM);
-		commandHash.put("rmdir", Command.RMDIR);
-		commandHash.put("pwd", Command.PWD);
-		commandHash.put("unit1", Command.UNIT1);
-		commandHash.put("unit2", Command.UNIT2);
-		commandHash.put("unit3", Command.UNIT3);
-		commandHash.put("unit4", Command.UNIT4);
-		commandHash.put("unit5", Command.UNIT5);
-		commandHash.put("unit6", Command.UNIT6);
-		commandHash.put("unit7",  Command.UNIT7);
+		try {
+			Path path = Paths.get(localPath);
+			byte[] data = Files.readAllBytes(path);
+			myClient.writeFile(remotePath, data);
+		} catch (IOException e) {
+			System.err.println("Error reading local file (verify path?)");
+		}
 	}
 
-	public void printHelp()
-	{
-		System.out.println("Supported Commands: ");
-		System.out.println("cd - changes directory to the specified path (or relative to current directory if not specified)");
-		System.out.println("exit - exits the program");
-		System.out.println("ls - list contents of current directory");
-		System.out.println("mkdir - creates a directory at the specified path (or the current directory if not specified)");
-		System.out.println("mkfile - creates a file at the specified path (or the current directory if not specified)");
-		System.out.println("pwd - prints the current working directory");
-	}
 	
 	public void unit1(int maxDepth, int currDir, String myDir) {
 		if (currDir > maxDepth) {
@@ -237,5 +231,37 @@ public class Driver {
 		myClient.removeDirectory(directoryName);
 	}
 
+	public void setupHashCommands(Hashtable<String,Command> commandHash)
+	{
+		commandHash.put("cd", Command.CD);
+		commandHash.put("cp", Command.CP);
+		commandHash.put("exit", Command.EXIT);
+		commandHash.put("help", Command.HELP);
+		commandHash.put("ls", Command.LS);
+		commandHash.put("mkdir", Command.MKDIR);
+		commandHash.put("mkfile", Command.MKFILE);
+		commandHash.put("pwd", Command.PWD);
+		commandHash.put("rm", Command.RM);
+		commandHash.put("rmdir", Command.RMDIR);
+		commandHash.put("unit1", Command.UNIT1);
+		commandHash.put("unit2", Command.UNIT2);
+		commandHash.put("unit3", Command.UNIT3);
+		commandHash.put("unit4", Command.UNIT4);
+		commandHash.put("unit5", Command.UNIT5);
+		commandHash.put("unit6", Command.UNIT6);
+		commandHash.put("unit7",  Command.UNIT7);
+	}
+
+	public void printHelp()
+	{
+		System.out.println("Supported Commands: ");
+		System.out.println("cd - changes directory to the specified path (or relative to current directory if not specified)");
+		System.out.println("cp - copies local file to filesystem (eg: C:\\test.txt \\usr\\newTest.txt");
+		System.out.println("exit - exits the program");
+		System.out.println("ls - list contents of current directory");
+		System.out.println("mkdir - creates a directory at the specified path (or the current directory if not specified)");
+		System.out.println("mkfile - creates a file at the specified path (or the current directory if not specified)");
+		System.out.println("pwd - prints the current working directory");
+	}
 }	
 

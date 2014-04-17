@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 public class Client {
 	private String masterIpAddress = "localhost";
@@ -62,11 +63,11 @@ public class Client {
 		{
 			if(currentDir.charAt(currentDir.length()-1) == '\\')
 			{
-				queryCommand = queryCommand.concat(newDirectory);
+				queryCommand = queryCommand.concat(currentDir + newDirectory);
 			}
 			else
 			{
-				queryCommand = queryCommand.concat("\\" + newDirectory);
+				queryCommand = queryCommand.concat(currentDir + "\\" + newDirectory);
 			}
 		}
 		
@@ -80,7 +81,14 @@ public class Client {
 			}
 			else
 			{
-				currentDir = currentDir + newDirectory;
+				if(currentDir.charAt(currentDir.length()-1) == '\\')
+				{
+					currentDir = currentDir + newDirectory;
+				}
+				else
+				{
+					currentDir = currentDir + "\\" + newDirectory;
+				}
 			}
 
 			return true;
@@ -101,15 +109,14 @@ public class Client {
 		}
 		else
 		{
-			if(currentDir.equals("\\"))
+			if(currentDir.charAt(currentDir.length() - 1) == '\\')
 			{
-				queryCommand = queryCommand.concat(directoryPath);
+				queryCommand = queryCommand.concat(currentDir + directoryPath);
 			}
 			else
 			{
-				queryCommand = queryCommand.concat("\\" + directoryPath);
+				queryCommand = queryCommand.concat(currentDir + "\\" + directoryPath);
 			}
-
 		}
 		
 		String[] result = sendMasterQuery(queryCommand);
@@ -134,15 +141,14 @@ public class Client {
 		}
 		else
 		{
-			if(currentDir.equals("\\"))
+			if(currentDir.charAt(currentDir.length() - 1) == '\\')
 			{
-				queryCommand = queryCommand.concat(directoryPath);
+				queryCommand = queryCommand.concat(currentDir + directoryPath);
 			}
 			else
 			{
 				queryCommand = queryCommand.concat(currentDir + "\\" + directoryPath);
 			}
-
 		}
 		
 		String[] result = sendMasterQuery(queryCommand);
@@ -163,7 +169,7 @@ public class Client {
 
 		if(filepath.charAt(0) == '\\')
 		{
-			queryCommand = queryCommand.concat(queryCommand + filepath);
+			queryCommand = queryCommand.concat(filepath);
 		}
 		else
 		{
@@ -200,20 +206,50 @@ public class Client {
 		}
 		else
 		{
-			if(currentDir.equals("\\"))
+			if(currentDir.charAt(currentDir.length() -1 ) == '\\')
 			{
-				queryCommand = queryCommand.concat(directoryName);
+				queryCommand = queryCommand.concat(currentDir + directoryName);
 			}
 			else
 			{
 				queryCommand = queryCommand.concat(currentDir + "\\" + directoryName);
 			}
-
 		}
 		
 		String[] result = sendMasterQuery(queryCommand);
 
 		if(result[0].contains("true"))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	public boolean writeFile(String remotePath, byte[] data)
+	{
+		if(remotePath.charAt(0) != '\\')
+		{
+			if(currentDir.charAt(currentDir.length() - 1) == '\\')
+			{
+				remotePath = currentDir + remotePath;
+			}
+			else
+			{
+				remotePath = currentDir + "\\" +  remotePath;
+			}
+		}
+
+		String command = "writeFile " + remotePath;
+		ByteBuffer bb = ByteBuffer.allocate(4 + command.length() + data.length);
+		bb.putInt(command.length());
+		bb.put(command.getBytes());
+		bb.put(data);
+		byte[] result = sendChunkServerQuery(bb.array());
+		
+		if(result != null && result.toString().contains("success"))
 		{
 			return true;
 		}
@@ -248,7 +284,8 @@ public class Client {
 			System.err.println("Error reading/writing to chunk server connection: " + e.getMessage());
 		}
 
-		return null;
+		byte[] ret = new byte[1];
+		return ret;
 	}
 	
 	private String[] sendMasterQuery(String query)
