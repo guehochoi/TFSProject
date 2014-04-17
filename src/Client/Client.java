@@ -23,7 +23,26 @@ public class Client {
 	{
 		
 	}
-	
+
+	private String formatRemotePath(String remotePath)
+	{
+		if(remotePath.charAt(0) == '\\')
+		{
+			return remotePath;
+		}
+		else
+		{
+			if(currentDir.charAt(currentDir.length()-1) == '\\')
+			{
+				return currentDir + remotePath;
+			}
+			else
+			{
+				return currentDir + "\\" + remotePath;
+			}
+		}
+	}
+
 	public String printWorkingDirectory()
 	{
 		return currentDir;
@@ -53,44 +72,12 @@ public class Client {
 			return true;
 		}
 		
-		String queryCommand = "directoryExists ";
-
-		if(newDirectory.charAt(0) == '\\')
-		{
-			queryCommand = queryCommand.concat(newDirectory);
-		}
-		else
-		{
-			if(currentDir.charAt(currentDir.length()-1) == '\\')
-			{
-				queryCommand = queryCommand.concat(currentDir + newDirectory);
-			}
-			else
-			{
-				queryCommand = queryCommand.concat(currentDir + "\\" + newDirectory);
-			}
-		}
-		
+		String queryCommand = "directoryExists " + formatRemotePath(newDirectory);
 		String result[] = sendMasterQuery(queryCommand);
 
 		if(result[0].contains("true"))
 		{
-			if(newDirectory.charAt(0) == '\\')
-			{
-				currentDir = newDirectory;
-			}
-			else
-			{
-				if(currentDir.charAt(currentDir.length()-1) == '\\')
-				{
-					currentDir = currentDir + newDirectory;
-				}
-				else
-				{
-					currentDir = currentDir + "\\" + newDirectory;
-				}
-			}
-
+			currentDir = formatRemotePath(newDirectory);
 			return true;
 		}
 		else
@@ -101,24 +88,7 @@ public class Client {
 	
 	public boolean createDirectory(String directoryPath)
 	{
-		String queryCommand = "createDirectory ";
-
-		if(directoryPath.charAt(0) == '\\')
-		{
-			queryCommand = queryCommand.concat(directoryPath);
-		}
-		else
-		{
-			if(currentDir.charAt(currentDir.length() - 1) == '\\')
-			{
-				queryCommand = queryCommand.concat(currentDir + directoryPath);
-			}
-			else
-			{
-				queryCommand = queryCommand.concat(currentDir + "\\" + directoryPath);
-			}
-		}
-		
+		String queryCommand = "createDirectory " + formatRemotePath(directoryPath);
 		String[] result = sendMasterQuery(queryCommand);
 
 		if(result[0].contains("true"))
@@ -133,24 +103,7 @@ public class Client {
 
 	public boolean createFile(String directoryPath)
 	{
-		String queryCommand = "createFile ";
-
-		if(directoryPath.charAt(0) == '\\')
-		{
-			queryCommand = queryCommand.concat(directoryPath);
-		}
-		else
-		{
-			if(currentDir.charAt(currentDir.length() - 1) == '\\')
-			{
-				queryCommand = queryCommand.concat(currentDir + directoryPath);
-			}
-			else
-			{
-				queryCommand = queryCommand.concat(currentDir + "\\" + directoryPath);
-			}
-		}
-		
+		String queryCommand = "createFile " + formatRemotePath(directoryPath);
 		String[] result = sendMasterQuery(queryCommand);
 
 		if(result[0].contains("true"))
@@ -165,25 +118,7 @@ public class Client {
 	
 	public boolean removeFile(String filepath)
 	{
-		String queryCommand = "removeFile ";
-
-		if(filepath.charAt(0) == '\\')
-		{
-			queryCommand = queryCommand.concat(filepath);
-		}
-		else
-		{
-			if(currentDir.equals("\\"))
-			{
-				queryCommand = queryCommand.concat(currentDir + filepath);
-			}
-			else
-			{
-				queryCommand = queryCommand.concat(currentDir + "\\" + filepath);
-			}
-
-		}
-		
+		String queryCommand = "removeFile " + formatRemotePath(filepath);
 		String[] result = sendMasterQuery(queryCommand);
 
 		if(result[0].contains("true"))
@@ -196,26 +131,9 @@ public class Client {
 		}
 	}
 
-	public boolean removeDirectory(String directoryName)
+	public boolean removeDirectory(String directoryPath)
 	{
-		String queryCommand = "removeDirectory ";
-
-		if(directoryName.charAt(0) == '\\')
-		{
-			queryCommand = queryCommand.concat(directoryName);
-		}
-		else
-		{
-			if(currentDir.charAt(currentDir.length() -1 ) == '\\')
-			{
-				queryCommand = queryCommand.concat(currentDir + directoryName);
-			}
-			else
-			{
-				queryCommand = queryCommand.concat(currentDir + "\\" + directoryName);
-			}
-		}
-		
+		String queryCommand = "removeDirectory " + formatRemotePath(directoryPath);
 		String[] result = sendMasterQuery(queryCommand);
 
 		if(result[0].contains("true"))
@@ -230,19 +148,7 @@ public class Client {
 	
 	public boolean writeFile(String remotePath, byte[] data)
 	{
-		if(remotePath.charAt(0) != '\\')
-		{
-			if(currentDir.charAt(currentDir.length() - 1) == '\\')
-			{
-				remotePath = currentDir + remotePath;
-			}
-			else
-			{
-				remotePath = currentDir + "\\" +  remotePath;
-			}
-		}
-
-		String command = "writeFile " + remotePath;
+		String command = "writeFile " + formatRemotePath(remotePath);
 		ByteBuffer bb = ByteBuffer.allocate(4 + command.length() + data.length);
 		bb.putInt(command.length());
 		bb.put(command.getBytes());
