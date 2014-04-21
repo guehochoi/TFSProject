@@ -186,7 +186,7 @@ public class Master {
 		}
 		else
 		{
-			deleteTFSFile(file);
+			deleteTFSFile(file,filename);
 			ret[0] = "true";
 			return ret;
 		}
@@ -231,7 +231,7 @@ public class Master {
 				String[] ret = new String[file.chunkServers.size() + 2];
 				ret[0] = "success";
 				ret[1] = file.md5FileName;
-				int count = 1;
+				int count = 2;
 
 				for(ChunkTracker.ChunkServerInfo info : file.chunkServers)
 				{
@@ -257,7 +257,7 @@ public class Master {
 		return new String[1];
 	}
 	
-	private void deleteTFSFile(TFSFile file)
+	private void deleteTFSFile(TFSFile file, String filename)
 	{
 		String queryString = "deleteFile " + file.md5FileName;
 		ByteBuffer bb = ByteBuffer.allocate(4 + queryString.length());
@@ -276,15 +276,14 @@ public class Master {
 		}
 
 		file.sema.release();
-		fs.deleteFile(file.fileName);
+		fs.deleteFile(filename);
 	}
 	
 	private void deleteTFSDirectory(String dir)
 	{
-		
 		for(TFSFile file: fs.directoryHash.get(dir).files)
 		{
-			deleteTFSFile(file);
+			deleteTFSFile(file,dir + "\\" + file.fileName);
 		}
 		
 		for(String subdir : fs.directoryHash.get(dir).subdirectories)

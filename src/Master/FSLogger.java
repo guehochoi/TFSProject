@@ -149,10 +149,10 @@ public class FSLogger implements Runnable {
 				switch(args[0])
 				{
 				case "createFile":
-					writeToPersistentFile(readLine.substring(readLine.indexOf(' ')),"f");
+					writeToPersistentFile(readLine.substring(readLine.indexOf(' ')+1),"f");
 					break;				
 				case "createDirectory" :
-					writeToPersistentFile(args[1],"d");
+					writeToPersistentFile(args[1] + " ","d"); //We need to add the extra space here because we lost a space during the split
 					break;
 				case "deleteDirectory" :
 				case "deleteFile" :
@@ -186,9 +186,6 @@ public class FSLogger implements Runnable {
 				{
 					writer.write(currentLine + "\n");
 				}
-				else
-				{
-				}
 			}
 			
 			reader.close();
@@ -221,7 +218,7 @@ public class FSLogger implements Runnable {
 		try 
 		{
 			FileWriter fw = new FileWriter(persistentFile,true);
-			fw.append(name + " :" + type + "\n");
+			fw.append(name + ":" + type + "\n");
 			fw.close();
 		} 
 		catch (IOException e) 

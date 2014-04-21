@@ -260,14 +260,14 @@ public class FileSystem {
 
 			while((readLine = br.readLine()) != null)
 			{
-				String[] split = readLine.split(" :");
+				String[] split = readLine.split(" ");
 
-				if(split[1] == null)
+				if(split.length < 2)
 				{
 					continue;
 				}
 
-				if(split[1].equals("d"))
+				if(split[1].equals(":d"))
 				{
 					String parentDir = this.getDirectoryPath(split[0]);
 
@@ -277,7 +277,7 @@ public class FileSystem {
 						directoryHash.put(split[0], new TFSDirectory());
 					}
 				}
-				else if(split[split.length - 1].equals("f"))
+				else if(split[split.length - 1].equals(":f"))
 				{
 					String dir = this.getDirectoryPath(split[0]);
 
@@ -288,7 +288,7 @@ public class FileSystem {
 						f.md5FileName = getMD5(split[0]);
 						directoryHash.get(dir).files.add(f);
 						
-						for(int i = 1; i < split.length - 1; i++)
+						for(int i = 1; i < split.length - 1; i = i + 2)
 						{
 							String ipAddress = split[i];
 							int port = Integer.parseInt(split[i+1]);
