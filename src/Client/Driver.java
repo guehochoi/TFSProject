@@ -3,7 +3,6 @@ package Client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,7 +54,6 @@ public class Driver {
 				lastCommand = Command.UNKNOWN;
 				System.out.println("Command not found. Type help for a list of commands.");
 			}
-			
 		}
 	}
 	
@@ -104,9 +102,17 @@ public class Driver {
 			{
 				System.out.println("Invalid input to mkfile command (must specify file path or name)");
 			}
-			else if(!myClient.createFile(args[1]))
+			else
 			{
-				System.out.println("Unable to create file " + args[1]);
+				String ret = myClient.createFile(args[1],1);
+				if(ret.contains("success"))
+				{
+					break;
+				}
+				else
+				{
+					System.out.println(ret);
+				}
 			}
 			break;
 		case LS:
@@ -192,12 +198,22 @@ public class Driver {
 		try {
 			Path path = Paths.get(localPath);
 			byte[] data = Files.readAllBytes(path);
-			myClient.writeFile(remotePath, data);
+			Client.OpenTFSFile file = myClient.openFile(remotePath);
+
+			if(file.openResult[0].contains("success"))
+			{
+				myClient.writeFile(file, data);
+			}
+			else
+			{
+				System.out.println(file.openResult[0]);
+			}
+
+			myClient.closeFile(file);
 		} catch (IOException e) {
 			System.err.println("Error reading local file (verify path?)");
 		}
 	}
-
 	
 	public void unit1(int maxDepth, int currDir, String myDir) {
 		if (currDir > maxDepth) {
@@ -215,7 +231,7 @@ public class Driver {
 		for (int i = 1; i <= numFiles; i++) {
 			String fileName = "";
 			fileName = "\\File" + i + ".txt";
-			myClient.createFile(rootDir + fileName);
+			myClient.createFile(rootDir + fileName, 1);
 		}
 		//TODO: Add getSubDirectories call to master
 		/*if(myClient.getSubdirectories(rootDir) == null){

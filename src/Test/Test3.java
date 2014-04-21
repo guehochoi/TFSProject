@@ -108,7 +108,7 @@ public class Test3 {
 						System.out.println("Creating " + f.getAbsolutePath());
 						String str = rootDirectory + "\\" + fnbuild.toString();
 						str.replaceAll(Matcher.quoteReplacement(File.separator), Matcher.quoteReplacement("\\"));
-						fs.createFile(str);
+						//fs.createFile(str);
 					}else {
 						System.out.println("Creating " + f.getAbsolutePath());
 						String str = rootDirectory + "\\" + fnbuild.toString();

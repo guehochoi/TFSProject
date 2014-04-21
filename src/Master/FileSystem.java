@@ -2,22 +2,18 @@ package Master;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.ByteBuffer;
-import java.nio.file.Paths;
-import java.util.Hashtable;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Comparator;
-import java.nio.file.StandardOpenOption;
-
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 
 public class FileSystem {
 
@@ -27,6 +23,9 @@ public class FileSystem {
 	public class TFSFile
 	{
 		String fileName = "";
+		String md5FileName = "";
+		Semaphore sema = new Semaphore(1);
+		LinkedList<ChunkTracker.ChunkServerInfo> chunkServers = new LinkedList<ChunkTracker.ChunkServerInfo>();
 	}
 
 	public class TFSDirectory
@@ -39,20 +38,20 @@ public class FileSystem {
 			subdirectories = new TreeSet<String>();
 
 			files = new TreeSet<TFSFile>(new Comparator<TFSFile>()
-					{
+			{
 				public int compare(TFSFile a, TFSFile b)
 				{
 					return a.fileName.compareTo(b.fileName);
 				}
-					});
+			});
 		}
 	}
 
-	Hashtable<String,TFSDirectory> directoryHash;
+	ConcurrentHashMap<String,TFSDirectory> directoryHash;
 
 	public FileSystem()
 	{
-		directoryHash = new Hashtable<String,TFSDirectory>();
+		directoryHash = new ConcurrentHashMap<String,TFSDirectory>();
 		directoryHash.put("\\", new TFSDirectory());
 		fsLogger.start();
 
@@ -64,127 +63,44 @@ public class FileSystem {
 		}
 	}
 
-	public boolean createFile(String filename)
+	public String createFile(String filename, List<ChunkTracker.ChunkServerInfo> servers)
 	{
+		TFSFile test = getFile(filename);
+
+		if(test != null)
+		{
+			return filename + " already exists";
+		}
+
 		String directoryPath = getDirectoryPath(filename);
 
 		if(directoryHash.containsKey(directoryPath) && isValidFileName(filename))
 		{
-			fsLogger.beginTransaction("createFile",filename);
 			TFSFile file = new TFSFile();
 			file.fileName = trimFileName(filename);
+			file.md5FileName = getMD5(filename);
 
-			try {
-				File myFile = new File(currentDir + filename);
-
-				if(myFile.exists())
-				{
-					fsLogger.removeTransaction();
-					System.err.println("Tried to create a file that already existed.");
-					return false;
-				}
-
-				myFile.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
+			String[] transactionString = new String[servers.size()*2 + 2];
+			transactionString[0] = "createFile";
+			transactionString[1] = filename;
+			int count = 2;
+			
+			for(ChunkTracker.ChunkServerInfo info : servers)
+			{
+				transactionString[count] = info.ipAddress;
+				transactionString[count+1] = Integer.toString(info.port);
+				count += 2;
+				file.chunkServers.add(info);
 			}
-
+			
+			fsLogger.beginTransaction(transactionString);
 			TFSDirectory dir = directoryHash.get(directoryPath);
 			dir.files.add(file);
 			fsLogger.commitTransaction();
-			return true;
+			return "success";
 		}
 
-		return false;
-	}
-
-	public boolean appendDataToFile(String tfsFile, byte[] dataToAppend,
-			int dataSize) {
-
-
-		Path tfsPath = Paths.get(currentDir + tfsFile);
-		File myFile = new File(currentDir + tfsFile);
-		String directoryPath = getDirectoryPath(tfsFile);
-
-		//Put bytes into buffer to append.
-		ByteBuffer bb = ByteBuffer.allocate(4);
-		bb.putInt(dataSize);
-		byte[] sizeBytes = bb.array();
-
-		if (directoryHash.containsKey(directoryPath)
-				&& isValidFileName(tfsFile)) {
-			fsLogger.beginTransaction("appendToFile", tfsFile);
-			if (!myFile.exists()) {
-				if (!createFile(tfsFile)) {
-					fsLogger.removeTransaction();
-				}
-			}
-			try {
-				Files.write(tfsPath, sizeBytes, StandardOpenOption.APPEND);
-			} catch (IOException e) {
-				fsLogger.removeTransaction();
-				e.printStackTrace();
-			}
-			try {
-				Files.write(tfsPath, dataToAppend, StandardOpenOption.APPEND);
-			} catch (IOException e) {
-				fsLogger.removeTransaction();
-				e.printStackTrace();
-			}
-			fsLogger.commitTransaction();
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Gets a byte array from the offset into file specified and of the size
-	 * specified.
-	 * 
-	 * Gross amount of try/catch, could add throws instead, maybe later.
-	 * 
-	 * @param tfsFilePath
-	 *            Filepath within TFS of file to read.
-	 * @param offset
-	 *            Offset to jump into file.
-	 * @param size
-	 *            Size of byte array to read.
-	 * @return Byte array read.
-	 */
-	public byte[] readBytesFromFile(String tfsFilePath, int offset, int size) {
-		byte[] bytesRead = new byte[size];
-		File check = new File(currentDir + tfsFilePath);
-		RandomAccessFile file = null;
-
-		String directoryPath = getDirectoryPath(tfsFilePath);
-
-		if (!check.exists()) {
-			System.err.println("File specified does not exist.");
-			return null;
-		}
-
-		if (directoryHash.containsKey(directoryPath)
-				&& isValidFileName(tfsFilePath)) {
-			try {
-				file = new RandomAccessFile(currentDir + tfsFilePath, "r");
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-			try {
-				if (file.length() > offset) {
-					file.seek(offset);
-					file.read(bytesRead);
-					file.close();
-				} else {
-					return null;
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			return bytesRead;
-		}
-		return null;
+		return filename + ": invalid filename or directory";
 	}
 
 	public boolean createDirectory(String directoryName)
@@ -194,20 +110,9 @@ public class FileSystem {
 		if(directoryHash.containsKey(parentDir) && isValidDirectoryName(directoryName))
 		{
 			fsLogger.beginTransaction("createDirectory",directoryName);
-
-			File myDir = new File(currentDir + directoryName);
-
-			if(myDir.exists())
-			{
-				fsLogger.removeTransaction();
-				System.err.println("Tried to create a directory that already existed.");
-				return false;
-			} 
-
 			TFSDirectory parentTFSDir = directoryHash.get(parentDir);
 			parentTFSDir.subdirectories.add(directoryName);
 			directoryHash.put(directoryName, new TFSDirectory());
-			myDir.mkdir();
 			fsLogger.commitTransaction();
 			return true;
 		}
@@ -217,51 +122,14 @@ public class FileSystem {
 
 	public boolean deleteDirectory(String directoryPath)
 	{
-		if(directoryHash.containsKey(directoryPath))
+		String parentDir = getDirectoryPath(directoryPath);
+		
+		if(directoryHash.containsKey(directoryPath) && !directoryPath.equals("\\"))
 		{
 			fsLogger.beginTransaction("deleteDirectory",directoryPath);
-			TFSDirectory dir = directoryHash.get(directoryPath);
-
-			for(TFSFile file : dir.files)
-			{
-				File f = new File(currentDir + directoryPath + "\\" + file.fileName);
-
-				if (!f.exists()) {
-					fsLogger.removeTransaction();
-					System.err.println("Error: "+f.getPath()+" not exist");
-					return false;
-				}
-
-				if (!f.isFile()) {
-					fsLogger.removeTransaction();
-					System.err.println("Error: "+f.getPath()+" is not a file");
-					return false;
-				}
-
-				if (!f.delete()) {
-					fsLogger.removeTransaction();
-					System.err.println("Error: "+f.getPath()+" failed to delete");
-					return false;
-				}
-			}
-
-			for(String subdir : dir.subdirectories)
-			{
-				if (!deleteDirectory(subdir)) {
-					return false;
-				}
-			}
-
-			File f = new File(currentDir + directoryPath);
-			if (f.delete()) {					
-				TFSDirectory parentDir = directoryHash.get(getDirectoryPath(directoryPath));
-				parentDir.subdirectories.remove(directoryPath);
-			}else {
-				fsLogger.removeTransaction();
-				System.err.println("Error: "+f.getPath()+" failed to delete");
-				return false;
-			}
-
+			directoryHash.remove(directoryPath);
+			TFSDirectory parent = directoryHash.get(parentDir);
+			parent.subdirectories.remove(directoryPath);
 			fsLogger.commitTransaction();
 		}
 
@@ -282,69 +150,14 @@ public class FileSystem {
 				if(f.fileName.equals(trimFileName(filepath)))
 				{
 					dir.files.remove(f);
+					fsLogger.commitTransaction();
 					break;
 				}
-			}
-
-			File f= new File(currentDir + filepath);
-
-			if (!f.exists()) {
-				fsLogger.removeTransaction();
-				System.err.println("Error: "+f.getPath()+" not exist");
-				return false;
-			}
-
-			if (!f.isFile()) {
-				fsLogger.removeTransaction();
-				System.err.println("Error: "+f.getPath()+" is not a file");
-				return false;
-			}
-
-			if (f.delete()) {
-				fsLogger.commitTransaction();
-			}else {
-				fsLogger.removeTransaction();
-				System.err.println("Error: "+f.getPath()+" failed to delete");
-				return false;
 			}
 
 			return true;
 		}
 		
-		return false;
-	}
-	
-	
-
-	public boolean writeFile(String filename, byte[] data) {
-		String directoryPath = getDirectoryPath(filename);
-
-		if(directoryHash.containsKey(directoryPath) && isValidFileName(filename))
-		{
-			fsLogger.beginTransaction("writeFile",filename);
-
-			try {
-				File myFile = new File(currentDir + filename);
-
-				if(!myFile.exists())
-				{
-					fsLogger.removeTransaction();
-					System.err.println("Attempt to write to a file that does not exist");
-					return false;
-				}
-
-				FileOutputStream fs = new FileOutputStream(myFile);
-				fs.write(data);
-				fs.close();
-				fsLogger.commitTransaction();
-				return true;
-			} catch (IOException e) {
-				fsLogger.removeTransaction();
-				e.printStackTrace();
-				return false;
-			}
-		}
-
 		return false;
 	}
 
@@ -384,33 +197,25 @@ public class FileSystem {
 		return filename.substring(filename.lastIndexOf('\\')+1);
 	}
 
-	public void printDirectory(String directoryPath, int depth)
+	public TFSFile getFile(String filename)
 	{
-		if(directoryHash.containsKey(directoryPath))
+		String parentDir = getDirectoryPath(filename);
+		
+		if(directoryHash.containsKey(parentDir))
 		{
-			System.out.println(directoryPath);
-			TFSDirectory dir = directoryHash.get(directoryPath);
-
-			for(TFSFile file : dir.files)
+			TFSDirectory dir = directoryHash.get(parentDir);
+			String searchFile = trimFileName(filename);
+			
+			for(TFSFile f : dir.files)
 			{
-				printTabs(depth+1);
-				System.out.println(file.fileName);
-			}
-
-			for(String subdir : dir.subdirectories)
-			{
-				printTabs(depth+1);
-				printDirectory(subdir,depth + 1);
+				if(f.fileName.equals(searchFile))
+				{
+					return f;
+				}
 			}
 		}
-	}
-
-	private void printTabs(int numTabs)
-	{
-		for(int i = 0; i < numTabs; i++)
-		{
-			System.out.print("   ");
-		}
+		
+		return null;
 	}
 
 	public SortedSet<String> getSubdirectories(String directory)
@@ -421,6 +226,25 @@ public class FileSystem {
 		}
 		else
 		{
+			return null;
+		}
+	}
+
+	private String getMD5(String fileName)
+	{
+		try {
+			MessageDigest m = MessageDigest.getInstance("MD5");
+			m.reset();
+			m.update(fileName.getBytes());
+			byte[] digest = m.digest();
+			BigInteger bigInt = new BigInteger(1,digest);
+			String hashtext = bigInt.toString(16);
+			while(hashtext.length() < 32 ){
+			  hashtext = "0"+hashtext;
+			}
+			return hashtext;
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
 			return null;
 		}
 	}
@@ -453,15 +277,24 @@ public class FileSystem {
 						directoryHash.put(split[0], new TFSDirectory());
 					}
 				}
-				else if(split[1].equals("f"))
+				else if(split[split.length - 1].equals("f"))
 				{
 					String dir = this.getDirectoryPath(split[0]);
 
 					if(directoryHash.containsKey(dir))
 					{
 						TFSFile f = new TFSFile();
-						f.fileName = split[0];
+						f.fileName = trimFileName(split[0]);
+						f.md5FileName = getMD5(split[0]);
 						directoryHash.get(dir).files.add(f);
+						
+						for(int i = 1; i < split.length - 1; i++)
+						{
+							String ipAddress = split[i];
+							int port = Integer.parseInt(split[i+1]);
+							ChunkTracker.ChunkServerInfo info = new ChunkTracker.ChunkServerInfo(ipAddress,port,0);
+							f.chunkServers.add(info);
+						}
 					}
 				}
 			}
@@ -473,68 +306,4 @@ public class FileSystem {
 			e.printStackTrace();
 		}
 	}
-
-	@SuppressWarnings("finally")
-	public boolean read(String src, String dst) {
-
-		File srcFile = new File(currentDir + src);
-		File dstFile = new File(dst);
-
-		if(directoryHash.containsKey(getDirectoryPath(src)) && isValidFileName(src))
-		{
-			fsLogger.beginTransaction("read",src);
-			if(!srcFile.exists()) {
-				System.out.println(src + " does not exist.");
-				fsLogger.removeTransaction();
-				return false;
-			}
-
-			if(dstFile.exists())
-			{
-				System.out.println(dst + " already exists.");
-				fsLogger.removeTransaction();
-				return false;
-			}
-
-			FileInputStream fin = null;
-			FileOutputStream fout = null;
-			try {
-
-				fin = new FileInputStream(srcFile);
-
-				byte fileContent[] = new byte[(int)srcFile.length()];
-				fin.read(fileContent);
-
-				fout = new FileOutputStream(dstFile);
-				fout.write(fileContent);
-
-			} catch (FileNotFoundException e) {
-				System.out.println(src + " not found.");
-				fsLogger.removeTransaction();
-				return false;
-			}
-			catch (IOException e) {
-				e.printStackTrace();
-				fsLogger.removeTransaction();
-				return false;
-			} finally {
-				try {
-					if (fin != null) {
-						fin.close();
-					}
-					if(fout != null) {
-						fout.close();
-					}
-					fsLogger.commitTransaction();
-					return true;
-				} catch (IOException ioe) {
-					System.out.println("Error while closing stream: " + ioe);
-					fsLogger.removeTransaction();
-					return false;
-				}
-			}
-		}
-		return false;
-	}
-
 }

@@ -30,7 +30,7 @@ public class Test7 {
 	}
 	
 	public void countFilesContained(String tfsPath, int offset, int size){
-		byte[] bytesRead = fs.readBytesFromFile(tfsPath, offset, size);
+		byte[] bytesRead = null;
 		if(bytesRead == null){
 			return;
 		}

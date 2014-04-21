@@ -21,7 +21,28 @@ public class Client {
 
 	public Client()
 	{
+	}
+	
+	public class OpenTFSFile
+	{
+		String[] openResult;
+		String filepath;
 		
+		public OpenTFSFile(String[] openResult, String filepath)
+		{
+			this.openResult = openResult;
+			this.filepath = filepath;
+		}
+		
+		public String getfileName()
+		{
+			if(openResult != null && openResult.length >= 2)
+			{
+				return openResult[1];
+			}
+			
+			return null;
+		}
 	}
 
 	private String formatRemotePath(String remotePath)
@@ -52,6 +73,7 @@ public class Client {
 	{
 		return sendMasterQuery("ls " + currentDir);
 	}
+	
 	
 	public boolean changeDirectory(String newDirectory)
 	{
@@ -101,19 +123,24 @@ public class Client {
 		}
 	}
 
-	public boolean createFile(String directoryPath)
+	public String createFile(String directoryPath, int numToCreate)
 	{
-		String queryCommand = "createFile " + formatRemotePath(directoryPath);
+		String queryCommand = "createFile " + formatRemotePath(directoryPath) + " " + numToCreate;
 		String[] result = sendMasterQuery(queryCommand);
-
-		if(result[0].contains("true"))
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		return result[0];
+	}
+	
+	public OpenTFSFile openFile(String filename)
+	{
+		String queryCommand = "openFile " + formatRemotePath(filename);
+		String[] result = sendMasterQuery(queryCommand);
+		return new OpenTFSFile(result, filename);
+	}
+	
+	public void closeFile(OpenTFSFile file)
+	{
+		String queryCommand = "closeFile " + formatRemotePath(file.filepath);
+		sendMasterQuery(queryCommand);
 	}
 	
 	public boolean removeFile(String filepath)
@@ -146,9 +173,9 @@ public class Client {
 		}
 	}
 	
-	public boolean writeFile(String remotePath, byte[] data)
+	public boolean writeFile(OpenTFSFile openFile, byte[] data)
 	{
-		String command = "writeFile " + formatRemotePath(remotePath);
+		String command = "writeFile " + openFile.getfileName();
 		ByteBuffer bb = ByteBuffer.allocate(4 + command.length() + data.length);
 		bb.putInt(command.length());
 		bb.put(command.getBytes());
@@ -163,6 +190,48 @@ public class Client {
 		{
 			return false;
 		}
+	}
+
+	public byte[] readFile(OpenTFSFile file)
+	{
+		if(file.openResult.length < 2)
+		{
+			return null;
+		}
+
+		String command = "readFile " + file.getfileName() + " 0 " + "0"; //the zero zero specifies at offset 0 and length of the whole file
+		ByteBuffer bb = ByteBuffer.allocate(4 + command.length());
+		bb.putInt(command.length());
+		bb.put(command.getBytes());
+		byte[] result = sendChunkServerQuery(bb.array());
+		
+		if(result[0] == 0 && result.length == 1)
+		{
+			return null;
+		}
+
+		return result;
+	}
+
+	public byte[] readFile(OpenTFSFile file, int offset, int size)
+	{
+		if(file.openResult.length < 2)
+		{
+			return null;
+		}
+
+		String command = "readFile " + file.getfileName() + " " + offset + " " + size;
+		ByteBuffer bb = ByteBuffer.allocate(4 + command.length());
+		bb.putInt(command.length());
+		bb.put(command.getBytes());
+		byte[] result = sendChunkServerQuery(bb.array());
+		
+		if(result[0] == 0 && result.length == 1)
+		{
+			return null;
+		}
+
+		return result;
 	}
 
 	public byte[] sendChunkServerQuery(byte[] data)
@@ -231,6 +300,12 @@ public class Client {
 	{
 		masterIpAddress = ipAddress;
 		masterPort = port;
+	}
+	
+	public void setChunkServerDetails(String ipAddress, int port)
+	{
+		chunkServerIpAddress = ipAddress;
+		chunkServerPort = port;
 	}
 	
 	public void beginMasterSession()

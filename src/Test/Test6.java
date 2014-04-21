@@ -39,7 +39,7 @@ public class Test6 {
 	
 	//	We'll always be appending to the end of the file. No need for offset now.
 	public void appendToFile(String tfsPath, byte[] dataToAppend, int dataSize){
-		fs.appendDataToFile(tfsPath, dataToAppend, dataSize);
+		//fs.appendDataToFile(tfsPath, dataToAppend, dataSize);
 	}
 	
 	public static void main(String[] args) {

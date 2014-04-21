@@ -32,7 +32,7 @@ public class Test2 {
 		for (int i = 1; i <= numFiles; i++) {
 			String fileName = "";
 			fileName = "\\File" + i + ".txt";
-			fs.createFile(rootDir + fileName);
+			//fs.createFile(rootDir + fileName);
 		}
 		
 		if(fs.getSubdirectories(rootDir) == null){

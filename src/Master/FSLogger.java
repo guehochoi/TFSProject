@@ -149,7 +149,7 @@ public class FSLogger implements Runnable {
 				switch(args[0])
 				{
 				case "createFile":
-					writeToPersistentFile(args[1],"f");
+					writeToPersistentFile(readLine.substring(readLine.indexOf(' ')),"f");
 					break;				
 				case "createDirectory" :
 					writeToPersistentFile(args[1],"d");

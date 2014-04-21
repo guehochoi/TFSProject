@@ -28,7 +28,7 @@ public class Test5 {
 	}
 	
 	public void read(String src, String dst) {
-	   fs.read(src, dst);
+	   //fs.read(src, dst);
 	}
 
 	public static void main(String[] args) {

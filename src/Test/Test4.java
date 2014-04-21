@@ -33,8 +33,7 @@ public class Test4 {
 		Path path = Paths.get(localPath);
 		byte[] data = Files.readAllBytes(path);
 		
-		fs.createFile(TFSpath);
-		fs.writeFile(TFSpath, data);
+		//fs.createFile(TFSpath);
 	}
 
 	public static void main(String[] args){
