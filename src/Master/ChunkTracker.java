@@ -85,7 +85,7 @@ public class ChunkTracker {
 		liveChunkServers.add(info);
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(chunkServerFile, true));
-			bw.append(info.ipAddress + ":" + info.port + ":" + info.numRegistered);
+			bw.append(info.ipAddress + ":" + info.port + ":" + info.numRegistered + "\n");
 			bw.close();
 		} catch (IOException e) {
 			System.err.println("Error saving newly registered chunkserver.");
