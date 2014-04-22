@@ -248,6 +248,14 @@ public class Driver {
 	public void unit3(String directoryName){
 		myClient.removeDirectory(directoryName);
 	}
+	
+	public void unit4(String localPath, String TFSpath) throws IOException {
+		Path path = Paths.get(localPath);
+		byte[] data = Files.readAllBytes(path);
+
+		myClient.createFile(TFSpath, 1);
+		myClient.writeFile(myClient.openFile(TFSpath), data);
+	}
 
 	public void setupHashCommands(Hashtable<String,Command> commandHash)
 	{
