@@ -190,7 +190,7 @@ public class Client {
 			String[] args = openFile.openResult[i].split(":");
 			String ipAddress = args[0];
 			int port = Integer.parseInt(args[1]);
-			byte[] result = sendChunkServerQuery(ipAddress,port,bb.array());
+			byte[] result = sendChunkServerQuery(ipAddress,port,bb.duplicate().array());
 			
 			if(ret == false && result.toString().contains("success"))
 			{
@@ -301,8 +301,13 @@ public class Client {
 		try {
 			DataOutputStream out = new DataOutputStream(chunkServerConnection.getOutputStream());
 			
+			if(data.length < 2)
+			{
+				System.out.println("EL OH EL DATA");
+			}
+			
 			out.write(data);
-			out.flush();
+			//out.close();
 			
 			DataInputStream in = new DataInputStream(chunkServerConnection.getInputStream());
 

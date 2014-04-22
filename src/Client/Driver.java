@@ -11,7 +11,7 @@ import java.util.Hashtable;
 public class Driver {
 	
 	public enum Command {
-		CD, CP, EXIT, HELP, LS, MKDIR, MKFILE, PWD, RM, RMDIR, UNKNOWN, UNIT1, UNIT2, UNIT3, UNIT4, UNIT5, UNIT6, UNIT7
+		CAT, CD, CP, EXIT, HELP, LS, MKDIR, MKFILE, PWD, RM, RMDIR, UNKNOWN, UNIT1, UNIT2, UNIT3, UNIT4, UNIT5, UNIT6, UNIT7
 	};
 
 	Client myClient = new Client();
@@ -98,22 +98,7 @@ public class Driver {
 			}
 			break;
 		case MKFILE:
-			if(args.length < 2)
-			{
-				System.out.println("Invalid input to mkfile command (must specify file path or name)");
-			}
-			else
-			{
-				String ret = myClient.createFile(args[1],1);
-				if(ret.contains("success"))
-				{
-					break;
-				}
-				else
-				{
-					System.out.println(ret);
-				}
-			}
+			makeFile(args);
 			break;
 		case LS:
 			String[] result = myClient.lsDirectory();
@@ -193,6 +178,37 @@ public class Driver {
 		return currentCommand;
 	}
 	
+	public void makeFile(String[] args)
+	{
+		if(args.length < 2)
+		{
+			System.out.println("Invalid input to mkfile command (must specify file path or name) (optional: #replicas)");
+		}
+		else
+		{
+			int numReplicas = 1;
+
+			if(args.length == 3)
+			{
+				try
+				{
+					int newReplicas = Integer.parseInt(args[2]);
+					numReplicas = newReplicas;
+				}
+				catch(NumberFormatException e)
+				{
+					System.out.println("Invalid argument passes to mkfile. Number of replicas must be an integer");
+				}
+			}
+			String ret = myClient.createFile(args[1],numReplicas);
+
+			if(!ret.contains("success"))
+			{
+				System.out.println(ret);
+			}
+		}
+	}
+
 	public void copyFile(String localPath, String remotePath)
 	{
 		Client.OpenTFSFile file = myClient.openFile(remotePath);
@@ -216,7 +232,7 @@ public class Driver {
 			myClient.closeFile(file);
 		}
 	}
-	
+
 	public void unit1(int maxDepth, int currDir, String myDir) {
 		if (currDir > maxDepth) {
 			return;
@@ -228,7 +244,7 @@ public class Driver {
 		unit1(maxDepth, currDir * 2, myDir);
 		unit1(maxDepth, (currDir * 2) + 1, myDir);
 	}
-	
+
 	public void unit2(String rootDir, int numFiles){
 		for (int i = 1; i <= numFiles; i++) {
 			String fileName = "";
@@ -244,7 +260,7 @@ public class Driver {
 				unit2(numFiles,subDir);
 		}*/
 	}
-	
+
 	public void unit3(String directoryName){
 		myClient.removeDirectory(directoryName);
 	}

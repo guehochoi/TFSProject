@@ -90,10 +90,16 @@ public class ChunkServer {
 				DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
 			    
 			    int length = in.available();
+			    
+			    if(length == 0)
+			    {
+			    	System.out.println("I AM THE DANGER");
+			    }
+
 			    byte[] data = new byte[length];
 			    in.readFully(data);
 			    
-			    byte[] sendData = cs.processData(data);
+			    byte[] sendData = cs.processData(data.clone());
 
 			    if(sendData == null)
 			    {
@@ -108,6 +114,7 @@ public class ChunkServer {
 			    bb.putInt(sendData.length);
 			    bb.put(sendData);
 			    out.write(bb.array());
+			    out.flush();
 			    out.close();
 			} catch (IOException e) {
 				System.out.println("Error processing a network request. Skipping request.");
@@ -149,6 +156,7 @@ public class ChunkServer {
 	
 	public byte[] processData(byte[] data)
 	{
+		System.out.println("Entering processData with size: " + data.length);
 		if(data.length < 2)
 		{
 			return null;
@@ -160,7 +168,7 @@ public class ChunkServer {
 		String[] args = command.split(" ");
 		
 		
-		System.out.println("Received commmand: " + command);
+		System.out.println(this.chunkServerPort + ": Received commmand: " + command);
 
 		switch(args[0])
 		{
@@ -441,8 +449,10 @@ public class ChunkServer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		return null;
+		
+		byte[] ret = new byte[1];
+		ret[0] = 0;
+		return ret;
 	}
 
 	private void updateMetaFile(File metaFile, int newVersion)
