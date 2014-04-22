@@ -160,6 +160,12 @@ public class Master {
 		if(file != null && ret[0].contains("success"))
 		{
 			String queryString = "createFile " + file.md5FileName;
+			
+			for(ChunkTracker.ChunkServerInfo info : file.chunkServers)
+			{
+				queryString = queryString.concat(" " + info.ipAddress + ":" + info.port);
+			}
+
 			ByteBuffer bb = ByteBuffer.allocate(4 + queryString.length());
 			bb.putInt(queryString.length());
 			bb.put(queryString.getBytes());
@@ -301,6 +307,8 @@ public class Master {
 				chunkServerConnection = new Socket(ipAddress, port);
 		} catch (IOException e1) {
 			System.out.println("Error making connection to chunkserver " + ipAddress + " on port " + port);
+			byte[] ret = new byte[1];
+			return ret;
 		}
 		
 		try {
