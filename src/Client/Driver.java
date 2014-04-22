@@ -195,10 +195,11 @@ public class Driver {
 	
 	public void copyFile(String localPath, String remotePath)
 	{
+		Client.OpenTFSFile file = myClient.openFile(remotePath);
+
 		try {
 			Path path = Paths.get(localPath);
 			byte[] data = Files.readAllBytes(path);
-			Client.OpenTFSFile file = myClient.openFile(remotePath);
 
 			if(file.openResult[0].contains("success"))
 			{
@@ -212,6 +213,7 @@ public class Driver {
 			myClient.closeFile(file);
 		} catch (IOException e) {
 			System.err.println("Error reading local file (verify path?)");
+			myClient.closeFile(file);
 		}
 	}
 	

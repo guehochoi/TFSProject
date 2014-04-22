@@ -153,6 +153,8 @@ public class ChunkServer {
 			return writeFile(command,data);
 		case "readFile":
 			return readFile(command);
+		case "appendFile":
+			return appendFile(command,data);
 		case "updateFile":
 			return updateFile(command);
 		}
@@ -334,6 +336,45 @@ public class ChunkServer {
 		}
 	}
 
+	public byte[] appendFile(String command, byte[] data)
+	{
+		ByteBuffer trimmedBuffer = ByteBuffer.allocate(data.length - 4 - command.length());
+		trimmedBuffer.put(data,4 + command.length(),data.length - 4 - command.length());
+
+		String[] args = command.split(" ");
+		
+		if(args.length < 2)
+		{
+			return "Invalid Arguments".getBytes();
+		}
+		
+		String fileName = args[1];
+
+		File myFile = new File(currentDir + fileName);
+
+		if(!myFile.exists())
+		{
+			return "File Does Not Exist".getBytes();
+		}
+
+		try {
+			FileOutputStream fs = new FileOutputStream(myFile,true);
+			fs.write(trimmedBuffer.array());
+			fs.close();
+			
+			File metaFile = new File(currentDir + fileName + ".meta");
+			
+			if(metaFile.exists())
+			{
+				updateMetaFile(metaFile,0);
+			}
+
+			return "success".getBytes();
+		} catch (IOException e) {
+			return "Error appending to file".getBytes();
+		}
+	}
+
 	private byte[] updateFile(String command)
 	{
 		String[] args = command.split(" ");
@@ -344,7 +385,7 @@ public class ChunkServer {
 		}
 		
 		String fileName = args[1];
-		String versionNumer = args[2];
+		String versionNumber = args[2];
 		
 		try {
 			File metaFile = new File(currentDir + fileName + ".meta");
@@ -359,10 +400,10 @@ public class ChunkServer {
 			}
 
 			BufferedReader reader = new BufferedReader(new FileReader(metaFile));
-			String versionLine = reader.readLine();
+			int currentVersion = versionNumToInt(reader.readLine());
 			reader.close();
 			
-			if(versionLine.equals(versionNumer))
+			if(currentVersion <= versionNumToInt(versionNumber))
 			{
 				return "no update".getBytes();
 			}
@@ -372,7 +413,7 @@ public class ChunkServer {
 				byte[] data = Files.readAllBytes(path);
 				String query = "writeFile " + fileName;
 				ByteBuffer bb = ByteBuffer.allocate(8 + query.length() + data.length);
-				bb.putInt(versionNumToInt(versionLine));
+				bb.putInt(currentVersion);
 				bb.putInt(query.length());
 				bb.put(query.getBytes());
 				bb.put(data);

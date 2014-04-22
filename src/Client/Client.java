@@ -180,16 +180,51 @@ public class Client {
 		bb.putInt(command.length());
 		bb.put(command.getBytes());
 		bb.put(data);
-		byte[] result = sendChunkServerQuery(bb.array());
 		
-		if(result != null && result.toString().contains("success"))
+		boolean ret = false;
+		
+		for(int i = 2; i < openFile.openResult.length; i++)
 		{
-			return true;
+			String[] args = openFile.openResult[i].split(":");
+			String ipAddress = args[0];
+			int port = Integer.parseInt(args[1]);
+			setChunkServerDetails(ipAddress,port);
+			byte[] result = sendChunkServerQuery(bb.array());
+			
+			if(ret == false && result.toString().contains("success"))
+			{
+				ret = true;
+			}
 		}
-		else
+		
+		return ret;
+	}
+	
+	public boolean appendFile(OpenTFSFile openFile, byte[] data)
+	{
+		String command = "appendFile " + openFile.getfileName();
+		ByteBuffer bb = ByteBuffer.allocate(4 + command.length() + data.length);
+		bb.putInt(command.length());
+		bb.put(command.getBytes());
+		bb.put(data);
+
+		boolean ret = false;
+		
+		for(int i = 2; i < openFile.openResult.length; i++)
 		{
-			return false;
+			String[] args = openFile.openResult[i].split(":");
+			String ipAddress = args[0];
+			int port = Integer.parseInt(args[1]);
+			setChunkServerDetails(ipAddress,port);
+			byte[] result = sendChunkServerQuery(bb.array());
+			
+			if(ret == false && result.toString().contains("success"))
+			{
+				ret = true;
+			}
 		}
+		
+		return ret;
 	}
 
 	public byte[] readFile(OpenTFSFile file)
@@ -203,14 +238,24 @@ public class Client {
 		ByteBuffer bb = ByteBuffer.allocate(4 + command.length());
 		bb.putInt(command.length());
 		bb.put(command.getBytes());
-		byte[] result = sendChunkServerQuery(bb.array());
-		
-		if(result[0] == 0 && result.length == 1)
-		{
-			return null;
-		}
 
-		return result;
+		for(int i = 2; i < file.openResult.length; i++)
+		{
+			String[] args = file.openResult[i].split(":");
+			String ipAddress = args[0];
+			int port = Integer.parseInt(args[1]);
+			setChunkServerDetails(ipAddress,port);
+			byte[] result = sendChunkServerQuery(bb.array());
+			
+			if(result[0] == 0 && result.length == 1)
+			{
+				continue;
+			}
+			
+			return result;
+		}
+		
+		return null;
 	}
 
 	public byte[] readFile(OpenTFSFile file, int offset, int size)
@@ -224,14 +269,24 @@ public class Client {
 		ByteBuffer bb = ByteBuffer.allocate(4 + command.length());
 		bb.putInt(command.length());
 		bb.put(command.getBytes());
-		byte[] result = sendChunkServerQuery(bb.array());
-		
-		if(result[0] == 0 && result.length == 1)
-		{
-			return null;
-		}
 
-		return result;
+		for(int i = 2; i < file.openResult.length; i++)
+		{
+			String[] args = file.openResult[i].split(":");
+			String ipAddress = args[0];
+			int port = Integer.parseInt(args[1]);
+			setChunkServerDetails(ipAddress,port);
+			byte[] result = sendChunkServerQuery(bb.array());
+			
+			if(result[0] == 0 && result.length == 1)
+			{
+				continue;
+			}
+			
+			return result;
+		}
+		
+		return null;
 	}
 
 	public byte[] sendChunkServerQuery(byte[] data)
@@ -325,7 +380,7 @@ public class Client {
 		try {
 			chunkServerConnection = new Socket(chunkServerIpAddress,chunkServerPort);
 		} catch (IOException e) {
-			System.err.println("Unable to connect to master server on " + masterIpAddress + ":" + masterPort);
+			System.err.println("Unable to connect to chunk server on " + chunkServerIpAddress + ":" + chunkServerPort);
 			System.err.println("Check your connection to the server and try again");
 			System.exit(0);
 		}
