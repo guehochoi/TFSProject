@@ -101,7 +101,7 @@ public class ChunkTracker {
 	// returns amount random chunk servers from the active chunkserver list
 	public List<ChunkServerInfo> getChunkServers(int amount)
 	{
-		if(amount > liveChunkServers.size())
+		if(liveChunkServers == null || amount > liveChunkServers.size())
 		{
 			return new LinkedList<ChunkServerInfo>();
 		}

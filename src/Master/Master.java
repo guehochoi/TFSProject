@@ -300,6 +300,12 @@ public class Master {
 		fs.deleteDirectory(dir);
 	}
 
+	/**
+	 * @param ipAddress
+	 * @param port
+	 * @param data
+	 * @return
+	 */
 	public byte[] sendChunkServerQuery(String ipAddress, int port, byte[] data)
 	{
 		Socket chunkServerConnection = null;

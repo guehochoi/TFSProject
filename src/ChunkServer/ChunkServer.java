@@ -26,15 +26,16 @@ import java.nio.file.Paths;
 public class ChunkServer {
 	
 	public String currentDir = System.getProperty("user.dir");
-	private int chunkServerPort = 668;
+	private int chunkServerPort = 667;
 	String myIp = null;
 	Socket masterConnection = null;
 	String masterIpAddress = null;
 	int masterPort = 666;
 	
-	public ChunkServer()
+	public ChunkServer(int port)
 	{
 		try {
+			chunkServerPort = port;
 			myIp = InetAddress.getLocalHost().getHostAddress();
 			masterIpAddress = myIp;
 			String[] result = sendMasterQuery("registerChunkServer " +  myIp + ":" +  Integer.toString(chunkServerPort));
@@ -54,7 +55,22 @@ public class ChunkServer {
 	}
 
 	public static void main(String[] args) {
-		ChunkServer cs = new ChunkServer();
+		int port = 667;
+
+		if(args.length >= 1)
+		{
+			try
+			{
+				port = Integer.parseInt(args[0]);
+			}
+			catch(NumberFormatException e)
+			{
+				System.out.println("Fatal error - invalid port supplied to chunkserver. Returing from thread.");
+				return;
+			}
+		}
+
+		ChunkServer cs = new ChunkServer(port);
 		boolean done = false;
 		ServerSocket server = null;
 
@@ -68,6 +84,7 @@ public class ChunkServer {
 		while(!done)
 		{
 			try {
+				System.out.println(cs.chunkServerPort + ": Begin accepting connections");
 				Socket clientSocket = server.accept(); //Accepts a connection, other connections are put on queue!
 				DataInputStream in = new DataInputStream(clientSocket.getInputStream());
 				DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
@@ -80,8 +97,10 @@ public class ChunkServer {
 
 			    if(sendData == null)
 			    {
+			    	byte[] ret = new byte[1];
+			    	ret[0] = 0;
+			    	out.write(ret);
 			    	out.close();
-			    	in.close();
 			    	continue;
 			    }
 
@@ -89,7 +108,7 @@ public class ChunkServer {
 			    bb.putInt(sendData.length);
 			    bb.put(sendData);
 			    out.write(bb.array());
-			    in.close();
+			    out.close();
 			} catch (IOException e) {
 				System.out.println("Error processing a network request. Skipping request.");
 			}

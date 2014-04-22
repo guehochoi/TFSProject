@@ -6,7 +6,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 public class Client {
@@ -188,8 +190,7 @@ public class Client {
 			String[] args = openFile.openResult[i].split(":");
 			String ipAddress = args[0];
 			int port = Integer.parseInt(args[1]);
-			setChunkServerDetails(ipAddress,port);
-			byte[] result = sendChunkServerQuery(bb.array());
+			byte[] result = sendChunkServerQuery(ipAddress,port,bb.array());
 			
 			if(ret == false && result.toString().contains("success"))
 			{
@@ -215,8 +216,7 @@ public class Client {
 			String[] args = openFile.openResult[i].split(":");
 			String ipAddress = args[0];
 			int port = Integer.parseInt(args[1]);
-			setChunkServerDetails(ipAddress,port);
-			byte[] result = sendChunkServerQuery(bb.array());
+			byte[] result = sendChunkServerQuery(ipAddress,port,bb.array());
 			
 			if(ret == false && result.toString().contains("success"))
 			{
@@ -244,8 +244,7 @@ public class Client {
 			String[] args = file.openResult[i].split(":");
 			String ipAddress = args[0];
 			int port = Integer.parseInt(args[1]);
-			setChunkServerDetails(ipAddress,port);
-			byte[] result = sendChunkServerQuery(bb.array());
+			byte[] result = sendChunkServerQuery(ipAddress,port,bb.array());
 			
 			if(result[0] == 0 && result.length == 1)
 			{
@@ -275,8 +274,7 @@ public class Client {
 			String[] args = file.openResult[i].split(":");
 			String ipAddress = args[0];
 			int port = Integer.parseInt(args[1]);
-			setChunkServerDetails(ipAddress,port);
-			byte[] result = sendChunkServerQuery(bb.array());
+			byte[] result = sendChunkServerQuery(ipAddress,port,bb.array());
 			
 			if(result[0] == 0 && result.length == 1)
 			{
@@ -289,11 +287,15 @@ public class Client {
 		return null;
 	}
 
-	public byte[] sendChunkServerQuery(byte[] data)
+	public byte[] sendChunkServerQuery(String ipAddress, int port, byte[] data)
 	{
-		if(chunkServerConnection == null || chunkServerConnection.isClosed())
-		{
-			beginChunkServerSession();
+		Socket chunkServerConnection = null;
+		try {
+				chunkServerConnection = new Socket(ipAddress, port);
+		} catch (IOException e1) {
+			System.out.println("Error making connection to chunkserver " + ipAddress + " on port " + port);
+			byte[] ret = new byte[1];
+			return ret;
 		}
 		
 		try {
@@ -309,9 +311,11 @@ public class Client {
 
 			out.close();
 			in.close();
+			chunkServerConnection.close();
 			return ret;
 		} catch (IOException e) {
-			System.err.println("Error reading/writing to chunk server connection: " + e.getMessage());
+			System.out.println("Error making connection to chunkserver " + ipAddress + " on port " + port);
+			System.out.println(e.getMessage());
 		}
 
 		byte[] ret = new byte[1];
@@ -359,7 +363,22 @@ public class Client {
 	
 	public void setChunkServerDetails(String ipAddress, int port)
 	{
-		chunkServerIpAddress = ipAddress;
+		String myIp;
+		try {
+			myIp = InetAddress.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e) {
+			myIp = "1";
+		}
+
+		if(myIp.equals(ipAddress))
+		{
+			chunkServerIpAddress = "localhost";
+		}
+		else
+		{
+			chunkServerIpAddress = ipAddress;
+		}
+
 		chunkServerPort = port;
 	}
 	
