@@ -298,6 +298,8 @@ public class ChunkServer {
 		}
 
 		String fileName = args[1];
+		
+		
 
 		File myFile = new File(currentDir + fileName);
 
@@ -309,7 +311,17 @@ public class ChunkServer {
 		try {
 			myFile.delete();
 			FileOutputStream fs = new FileOutputStream(myFile);
-			fs.write(args[2].getBytes());
+			
+			for(int i = 2; i < args.length; i++)
+			{
+				fs.write(args[i].getBytes());
+				
+				if(i + 1 < args.length)
+				{
+					fs.write(" ".getBytes());
+				}
+			}
+
 			fs.close();
 
 			File metaFile = new File(currentDir + fileName + ".meta");
@@ -396,7 +408,17 @@ public class ChunkServer {
 
 		try {
 			FileOutputStream fs = new FileOutputStream(myFile,true);
-			fs.write(args[2].getBytes());
+
+			for(int i = 2; i < args.length; i++)
+			{
+				fs.write(args[i].getBytes());
+				
+				if(i + 1 < args.length)
+				{
+					fs.write(" ".getBytes());
+				}
+			}
+
 			fs.close();
 
 			File metaFile = new File(currentDir + fileName + ".meta");
