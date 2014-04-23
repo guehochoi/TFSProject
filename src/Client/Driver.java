@@ -166,6 +166,11 @@ public class Driver {
 		case UNIT5:
 			break;
 		case UNIT6:
+			if (args.length < 2) {
+				System.err.println("Usage: unit6 localfile tfsfile");
+			}else {
+				unit6(args[0], args[1]);
+			}
 			break;
 		case UNIT7:
 			break;
@@ -271,6 +276,22 @@ public class Driver {
 
 		myClient.createFile(TFSpath, 1);
 		myClient.writeFile(myClient.openFile(TFSpath), data);
+	}
+	
+	public void unit6(String localFilename, String tfsFilename) {
+		Path localPath = Paths.get(localFilename);
+		byte[] localData = null;
+		int localFileSize = 0;
+		try {
+			localData = Files.readAllBytes(localPath);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		localFileSize = localData.length;
+		
+		Client.OpenTFSFile openTFS = myClient.openFile(tfsFilename);
+		myClient.appendFile(openTFS, localData);
 	}
 
 	public void setupHashCommands(Hashtable<String,Command> commandHash)
