@@ -42,9 +42,23 @@ public class CSTest {
 		};
 
 
-		one.start();
-		two.start();
 		three.start();
+
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		two.start();
+
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		one.start();
 	}
 
 }

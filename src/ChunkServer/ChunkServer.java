@@ -24,14 +24,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class ChunkServer {
-	
+
 	public String currentDir = System.getProperty("user.dir");
 	private int chunkServerPort = 667;
 	String myIp = null;
 	Socket masterConnection = null;
 	String masterIpAddress = null;
 	int masterPort = 666;
-	
+
 	public ChunkServer(int port)
 	{
 		try {
@@ -40,14 +40,14 @@ public class ChunkServer {
 			masterIpAddress = myIp;
 			String[] result = sendMasterQuery("registerChunkServer " +  myIp + ":" +  Integer.toString(chunkServerPort));
 			currentDir = currentDir.concat("\\" + "cs" + result[0] + "\\");
-			
+
 			File myFile = new File(currentDir);
-			
+
 			if(!myFile.exists())
 			{
 				myFile.mkdir();
 			}
-			
+
 			synchronize();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -80,7 +80,7 @@ public class ChunkServer {
 			System.out.println("Unable to connect to port " + cs.chunkServerPort + ". Aborting...");
 			System.exit(0);
 		}
-		
+
 		while(!done)
 		{
 			try {
@@ -88,29 +88,29 @@ public class ChunkServer {
 				Socket clientSocket = server.accept(); //Accepts a connection, other connections are put on queue!
 				DataInputStream in = new DataInputStream(clientSocket.getInputStream());
 				DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
-			    
-			    int length = in.readInt();
-			    
-			    byte[] data = new byte[length];
-			    in.readFully(data);
-			    
-			    byte[] sendData = cs.processData(data);
 
-			    if(sendData == null)
-			    {
-			    	byte[] ret = new byte[1];
-			    	ret[0] = 0;
-			    	out.write(ret);
-			    	out.close();
-			    	continue;
-			    }
+				int length = in.readInt();
 
-			    ByteBuffer bb = ByteBuffer.allocate(4 + sendData.length);
-			    bb.putInt(sendData.length);
-			    bb.put(sendData);
-			    out.write(bb.array());
-			    out.flush();
-			    out.close();
+				byte[] data = new byte[length];
+				in.readFully(data);
+
+				byte[] sendData = cs.processData(data);
+
+				if(sendData == null)
+				{
+					byte[] ret = new byte[1];
+					ret[0] = 0;
+					out.write(ret);
+					out.close();
+					continue;
+				}
+
+				ByteBuffer bb = ByteBuffer.allocate(4 + sendData.length);
+				bb.putInt(sendData.length);
+				bb.put(sendData);
+				out.write(bb.array());
+				out.flush();
+				out.close();
 			} catch (IOException e) {
 				System.out.println("Error processing a network request. Skipping request.");
 			}
@@ -123,32 +123,32 @@ public class ChunkServer {
 		{
 			beginMasterSession();
 		}
-		
-	    try {
+
+		try {
 			PrintWriter out = new PrintWriter(masterConnection.getOutputStream(), true);
-			
+
 			out.println(query);
 			out.println("END_OF_TRANSMISSION");
 			out.flush();
-			
+
 			BufferedReader in = new BufferedReader(new InputStreamReader(masterConnection.getInputStream()));
 			String fromServer, ret = "";
 
-            while ((fromServer = in.readLine()) != null) 
-            {
-            	ret = ret.concat(fromServer + "\n");
-            }
-            
-            out.close();
-            in.close();
-            return ret.split("\n");
+			while ((fromServer = in.readLine()) != null) 
+			{
+				ret = ret.concat(fromServer + "\n");
+			}
+
+			out.close();
+			in.close();
+			return ret.split("\n");
 		} catch (IOException e) {
 			System.err.println("Error reading/writing to master connection: " + e.getMessage());
 		}
 
 		return null;
 	}
-	
+
 	public byte[] processData(byte[] data)
 	{
 		if(data == null)
@@ -159,7 +159,7 @@ public class ChunkServer {
 		String command = new String(data);
 		int spaceIndex = command.indexOf(" ");
 		int lastSpace = command.lastIndexOf(" ");
-		
+
 		if(spaceIndex < 0)
 		{
 			spaceIndex = command.length() - 1;
@@ -170,7 +170,7 @@ public class ChunkServer {
 		}
 
 		String function = command.substring(0,spaceIndex);
-		
+
 		if(function.equals("writeFile") || function.equals("append"))
 		{
 			System.out.println(this.chunkServerPort + ": Received commmand: " + command.substring(0,lastSpace));
@@ -193,23 +193,22 @@ public class ChunkServer {
 		case "appendFile":
 			return appendFile(command,data);
 		case "updateFile":
-			break;
-			//return updateFile(command);
+			return updateFile(command);
 		}
 
 		return "Command not found".getBytes();
 	}
-	
+
 
 	public byte[] createFile(String command)
 	{
 		String[] args = command.split(" ");
-		
+
 		if(args.length < 2)
 		{
 			return "Invalid Arguments".getBytes();
 		}
-		
+
 		String fileName = args[1];
 		File myFile = new File(currentDir + fileName);
 
@@ -231,7 +230,7 @@ public class ChunkServer {
 					{
 						fw.write(args[i] + "\n");
 					}
-					
+
 					fw.close();
 				} catch (IOException e) {
 					System.out.println("Unable to create/write to the meta file - file may not be synchronized with replicas");
@@ -256,12 +255,12 @@ public class ChunkServer {
 	public byte[] deleteFile(String command)
 	{
 		String[] args = command.split(" ");
-		
+
 		if(args.length < 2)
 		{
 			return "Invalid Arguments".getBytes();
 		}
-		
+
 		String fileName = args[1];
 		File myFile = new File(currentDir + fileName);
 
@@ -274,10 +273,10 @@ public class ChunkServer {
 			if(myFile.delete())
 			{
 				File metaFile = new File(currentDir + fileName + ".meta");
-				
+
 				if(metaFile.exists())
 				{
-					metaFile.delete();
+					updateMetaFile(metaFile,-1);
 				}
 
 				return "success".getBytes();
@@ -292,12 +291,12 @@ public class ChunkServer {
 	public byte[] writeFile(String command, byte[] data)
 	{
 		String[] args = command.split(" ");
-		
+
 		if(args.length < 3)
 		{
 			return "Invalid Arguments".getBytes();
 		}
-		
+
 		String fileName = args[1];
 
 		File myFile = new File(currentDir + fileName);
@@ -308,12 +307,13 @@ public class ChunkServer {
 		}
 
 		try {
+			myFile.delete();
 			FileOutputStream fs = new FileOutputStream(myFile);
 			fs.write(args[2].getBytes());
 			fs.close();
-			
+
 			File metaFile = new File(currentDir + fileName + ".meta");
-			
+
 			if(metaFile.exists())
 			{
 				updateMetaFile(metaFile,0);
@@ -324,7 +324,7 @@ public class ChunkServer {
 			return "Error writing to file".getBytes();
 		}
 	}
-	
+
 	public byte[] readFile(String command)
 	{
 		String[] args = command.split(" ");
@@ -333,7 +333,7 @@ public class ChunkServer {
 		{
 			return null;
 		}
-		
+
 		int offset;
 		long size;
 
@@ -379,12 +379,12 @@ public class ChunkServer {
 	public byte[] appendFile(String command, byte[] data)
 	{
 		String[] args = command.split(" ");
-		
+
 		if(args.length < 3)
 		{
 			return "Invalid Arguments".getBytes();
 		}
-		
+
 		String fileName = args[1];
 
 		File myFile = new File(currentDir + fileName);
@@ -398,9 +398,9 @@ public class ChunkServer {
 			FileOutputStream fs = new FileOutputStream(myFile,true);
 			fs.write(args[2].getBytes());
 			fs.close();
-			
+
 			File metaFile = new File(currentDir + fileName + ".meta");
-			
+
 			if(metaFile.exists())
 			{
 				updateMetaFile(metaFile,0);
@@ -415,51 +415,50 @@ public class ChunkServer {
 	private byte[] updateFile(String command)
 	{
 		String[] args = command.split(" ");
-		
+
 		if(args.length != 3)
 		{
 			return null;
 		}
-		
+
 		String fileName = args[1];
 		String versionNumber = args[2];
-		
+
 		try {
 			File metaFile = new File(currentDir + fileName + ".meta");
 
-			if(!metaFile.exists())
+			if(metaFile.exists())
 			{
-				String query = "deleteFile " + fileName;
-				ByteBuffer bb = ByteBuffer.allocate(query.length() + 4);
-				bb.putInt(query.length());
-				bb.put(query.getBytes());
-				return bb.array();
-			}
 
-			BufferedReader reader = new BufferedReader(new FileReader(metaFile));
-			int currentVersion = versionNumToInt(reader.readLine());
-			reader.close();
-			
-			if(currentVersion <= versionNumToInt(versionNumber))
-			{
-				return "no update".getBytes();
-			}
-			else
-			{
-				Path path = Paths.get(currentDir + fileName);
-				byte[] data = Files.readAllBytes(path);
-				String query = "writeFile " + fileName;
-				ByteBuffer bb = ByteBuffer.allocate(8 + query.length() + data.length);
-				bb.putInt(currentVersion);
-				bb.putInt(query.length());
-				bb.put(query.getBytes());
-				bb.put(data);
-				return bb.array();
+				BufferedReader reader = new BufferedReader(new FileReader(metaFile));
+				int currentVersion = versionNumToInt(reader.readLine());
+				reader.close();
+
+				if(currentVersion < 0)
+				{
+					String query = "deleteFile " + fileName;
+					return query.getBytes();
+				}
+				else if(currentVersion <= versionNumToInt(versionNumber))
+				{
+					return "no update".getBytes();
+				}
+				else
+				{
+					Path path = Paths.get(currentDir + fileName);
+					byte[] data = Files.readAllBytes(path);
+					String query = "writeFile " + fileName + " ";
+					ByteBuffer bb = ByteBuffer.allocate(4 + query.length() + data.length);
+					bb.putInt(currentVersion);
+					bb.put(query.getBytes());
+					bb.put(data);
+					return bb.array();
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		byte[] ret = new byte[1];
 		ret[0] = 0;
 		return ret;
@@ -514,7 +513,7 @@ public class ChunkServer {
 			System.exit(0);
 		}
 	}
-	
+
 	private int versionNumToInt(String versionNum)
 	{
 		String versionString = versionNum.substring(1,versionNum.length());
@@ -554,16 +553,16 @@ public class ChunkServer {
 						bb.put(sendQuery.getBytes());
 						String ipAddress = currentLine.substring(0,currentLine.indexOf(":"));
 						int port = Integer.parseInt(currentLine.substring(currentLine.indexOf(":")+1,currentLine.length()));
-						byte[] result = sendChunkServerQuery(ipAddress,port,bb.array());
+						byte[] result = sendChunkServerQuery(ipAddress,port,bb.duplicate().array());
 
 						if(result.length > 1)
 						{
 							reader.close();
-							if(result.equals("no update"))
+							if(new String(result).equals("no update"))
 							{
 								break;
 							}
-							else if(result.length > 5 && result[4] == 'd') //if it's delete...
+							else if(result.length > 1 && result[0] == 'd') //if it's delete...
 							{
 								processData(result);
 							}
@@ -575,7 +574,7 @@ public class ChunkServer {
 								buf.get(data,0,result.length-4);
 								processData(data);
 							}
-							
+
 							break;
 						}
 					}

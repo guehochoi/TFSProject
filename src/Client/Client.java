@@ -199,9 +199,9 @@ public class Client {
 	
 	public boolean appendFile(OpenTFSFile openFile, byte[] data)
 	{
-		String command = "appendFile " + openFile.getfileName();
+		String command = "appendFile " + openFile.getfileName() + " ";
 		ByteBuffer bb = ByteBuffer.allocate(4 + command.length() + data.length);
-		bb.putInt(command.length());
+		bb.putInt(command.length() + data.length);
 		bb.put(command.getBytes());
 		bb.put(data);
 
