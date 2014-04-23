@@ -8,10 +8,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Hashtable;
 
+import Client.Client.OpenTFSFile;
+
 public class Driver {
-	
+
 	public enum Command {
-		CAT, CD, CP, EXIT, HELP, LS, MKDIR, MKFILE, PWD, RM, RMDIR, UNKNOWN, UNIT1, UNIT2, UNIT3, UNIT4, UNIT5, UNIT6, UNIT7
+		CAT, CD, CP, EXIT, HELP, LS, MKDIR, MKFILE, PWD, RM, RMDIR, UNKNOWN, UNIT1, UNIT2, UNIT3, UNIT4, UNIT5, UNIT6, UNIT7, UNIT8
 	};
 
 	Client myClient = new Client();
@@ -21,30 +23,30 @@ public class Driver {
 		Driver myDriver = new Driver();
 		myDriver.start();
 	}
-	
+
 	public Driver()
 	{
 		setupHashCommands(commandHash);
 	}
-	
+
 	public void start()
 	{
 		Command lastCommand = Command.UNKNOWN;
-	    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
 		while(lastCommand != Command.EXIT)
 		{
-	        System.out.print("> ");
-	        String line = "";
+			System.out.print("> ");
+			String line = "";
 
-	        try {
+			try {
 				line = br.readLine();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-	        
-	        String[] args = line.split(" ");
-			
+
+			String[] args = line.split(" ");
+
 			if(commandHash.containsKey(args[0].toLowerCase()))
 			{
 				lastCommand = processCommand(args);
@@ -56,7 +58,7 @@ public class Driver {
 			}
 		}
 	}
-	
+
 	public Command processCommand(String[] args)
 	{
 		Command currentCommand = commandHash.get(args[0].toLowerCase());
@@ -159,25 +161,40 @@ public class Driver {
 			if(args.length < 2){
 				System.out.println("Invalid input to unit1 command (must specify number of directories to create)");
 			}
-				unit3(args[1]);
+			unit3(args[1]);
 			break;
 		case UNIT4:
 			break;
 		case UNIT5:
 			break;
 		case UNIT6:
+			String localFile = "";
+			String tfsFile = "";
+
+			if (args.length != 3) {
+				System.err.println("Check arguments.");
+			}
+
+			localFile = args[1];
+			tfsFile = args[2];
+
+			unit6(tfsFile, localFile);
+
+
 			break;
 		case UNIT7:
 			break;
-			
+		case UNIT8:
+			break;
+
 		default:
-	
+
 			break;
 		}
-		
+
 		return currentCommand;
 	}
-	
+
 	public void makeFile(String[] args)
 	{
 		if(args.length < 2)
@@ -264,7 +281,7 @@ public class Driver {
 	public void unit3(String directoryName){
 		myClient.removeDirectory(directoryName);
 	}
-	
+
 	public void unit4(String localPath, String TFSpath) throws IOException {
 		Path path = Paths.get(localPath);
 		byte[] data = Files.readAllBytes(path);
@@ -272,6 +289,23 @@ public class Driver {
 		myClient.createFile(TFSpath, 1);
 		myClient.writeFile(myClient.openFile(TFSpath), data);
 	}
+
+	public void unit6(String TFSpath, String localFile) {
+		//Get number of bytes in local file.
+		Path localPath = Paths.get(localFile);
+		byte[] localData = null;
+
+		try {
+			localData = Files.readAllBytes(localPath);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		OpenTFSFile openFile = myClient.openFile(TFSpath);
+		myClient.appendFile(openFile, localData);
+		myClient.closeFile(openFile);
+	}
+
 
 	public void setupHashCommands(Hashtable<String,Command> commandHash)
 	{
