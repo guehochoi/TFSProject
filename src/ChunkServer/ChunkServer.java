@@ -89,17 +89,12 @@ public class ChunkServer {
 				DataInputStream in = new DataInputStream(clientSocket.getInputStream());
 				DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
 			    
-			    int length = in.available();
+			    int length = in.readInt();
 			    
-			    if(length == 0)
-			    {
-			    	System.out.println("I AM THE DANGER");
-			    }
-
 			    byte[] data = new byte[length];
 			    in.readFully(data);
 			    
-			    byte[] sendData = cs.processData(data.clone());
+			    byte[] sendData = cs.processData(data);
 
 			    if(sendData == null)
 			    {
@@ -156,21 +151,36 @@ public class ChunkServer {
 	
 	public byte[] processData(byte[] data)
 	{
-		System.out.println("Entering processData with size: " + data.length);
-		if(data.length < 2)
+		if(data == null)
 		{
 			return null;
 		}
 
-		ByteBuffer bb = ByteBuffer.wrap(data);
-		int commandLength = bb.getInt();
-		String command = new String(data,4,commandLength);
-		String[] args = command.split(" ");
+		String command = new String(data);
+		int spaceIndex = command.indexOf(" ");
+		int lastSpace = command.lastIndexOf(" ");
 		
-		
-		System.out.println(this.chunkServerPort + ": Received commmand: " + command);
+		if(spaceIndex < 0)
+		{
+			spaceIndex = command.length() - 1;
+		}
+		else if(lastSpace < 0)
+		{
+			lastSpace = command.length() - 1;
+		}
 
-		switch(args[0])
+		String function = command.substring(0,spaceIndex);
+		
+		if(function.equals("writeFile") || function.equals("append"))
+		{
+			System.out.println(this.chunkServerPort + ": Received commmand: " + command.substring(0,lastSpace));
+		}
+		else
+		{
+			System.out.println(this.chunkServerPort + ": Received commmand: " + command);
+		}
+
+		switch(function)
 		{
 		case "createFile":
 			return createFile(command);
@@ -183,7 +193,8 @@ public class ChunkServer {
 		case "appendFile":
 			return appendFile(command,data);
 		case "updateFile":
-			return updateFile(command);
+			break;
+			//return updateFile(command);
 		}
 
 		return "Command not found".getBytes();
@@ -193,6 +204,11 @@ public class ChunkServer {
 	public byte[] createFile(String command)
 	{
 		String[] args = command.split(" ");
+		
+		if(args.length < 2)
+		{
+			return "Invalid Arguments".getBytes();
+		}
 		
 		String fileName = args[1];
 		File myFile = new File(currentDir + fileName);
@@ -275,12 +291,9 @@ public class ChunkServer {
 
 	public byte[] writeFile(String command, byte[] data)
 	{
-		ByteBuffer trimmedBuffer = ByteBuffer.allocate(data.length - 4 - command.length());
-		trimmedBuffer.put(data,4 + command.length(),data.length - 4 - command.length());
-
 		String[] args = command.split(" ");
 		
-		if(args.length < 2)
+		if(args.length < 3)
 		{
 			return "Invalid Arguments".getBytes();
 		}
@@ -296,7 +309,7 @@ public class ChunkServer {
 
 		try {
 			FileOutputStream fs = new FileOutputStream(myFile);
-			fs.write(trimmedBuffer.array());
+			fs.write(args[2].getBytes());
 			fs.close();
 			
 			File metaFile = new File(currentDir + fileName + ".meta");
@@ -365,12 +378,9 @@ public class ChunkServer {
 
 	public byte[] appendFile(String command, byte[] data)
 	{
-		ByteBuffer trimmedBuffer = ByteBuffer.allocate(data.length - 4 - command.length());
-		trimmedBuffer.put(data,4 + command.length(),data.length - 4 - command.length());
-
 		String[] args = command.split(" ");
 		
-		if(args.length < 2)
+		if(args.length < 3)
 		{
 			return "Invalid Arguments".getBytes();
 		}
@@ -386,7 +396,7 @@ public class ChunkServer {
 
 		try {
 			FileOutputStream fs = new FileOutputStream(myFile,true);
-			fs.write(trimmedBuffer.array());
+			fs.write(args[2].getBytes());
 			fs.close();
 			
 			File metaFile = new File(currentDir + fileName + ".meta");

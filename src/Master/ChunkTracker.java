@@ -8,13 +8,14 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ChunkTracker {
-	LinkedList<ChunkServerInfo> liveChunkServers = new LinkedList<ChunkServerInfo>();
-	LinkedList<ChunkServerInfo> deadChunkServers = new LinkedList<ChunkServerInfo>();
+	List<ChunkServerInfo> liveChunkServers = Collections.synchronizedList(new ArrayList<ChunkServerInfo>());
+	List<ChunkServerInfo> deadChunkServers = Collections.synchronizedList(new ArrayList<ChunkServerInfo>());
 	
 	int numChunkServers = 0;
 	File chunkServerFile = new File("ChunkServers.txt");
@@ -63,26 +64,43 @@ public class ChunkTracker {
 
 	public int registerChunkServer(String ipAddress, int port)
 	{
-		for(ChunkServerInfo info : deadChunkServers)
+		if(deadChunkServers != null)
 		{
-			if(info.ipAddress.equals(ipAddress) && info.port == port)
+			synchronized(deadChunkServers)
 			{
-				liveChunkServers.add(info);
-				deadChunkServers.remove(info);
-				return info.numRegistered;
+				for(ChunkServerInfo info : deadChunkServers)
+				{
+					if(info.ipAddress.equals(ipAddress) && info.port == port)
+					{
+						liveChunkServers.add(info);
+						deadChunkServers.remove(info);
+						return info.numRegistered;
+					}
+				}
 			}
 		}
 
-		for(ChunkServerInfo info : liveChunkServers)
+		if(liveChunkServers != null)
 		{
-			if(info.ipAddress.equals(ipAddress) && info.port == port)
+			synchronized(liveChunkServers)
 			{
-				return info.numRegistered;
+				for(ChunkServerInfo info : liveChunkServers)
+				{
+					if(info.ipAddress.equals(ipAddress) && info.port == port)
+					{
+						return info.numRegistered;
+					}
+				}
 			}
 		}
 
 		ChunkServerInfo info = new ChunkServerInfo(ipAddress, port, ++numChunkServers);
-		liveChunkServers.add(info);
+
+		synchronized(liveChunkServers)
+		{
+			liveChunkServers.add(info);
+		}
+
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(chunkServerFile, true));
 			bw.append(info.ipAddress + ":" + info.port + ":" + info.numRegistered + "\n");

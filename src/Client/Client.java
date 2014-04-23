@@ -20,10 +20,6 @@ public class Client {
 	private String currentDir = "\\";
 	Socket masterConnection;
 	Socket chunkServerConnection;
-
-	public Client()
-	{
-	}
 	
 	public class OpenTFSFile
 	{
@@ -177,9 +173,9 @@ public class Client {
 	
 	public boolean writeFile(OpenTFSFile openFile, byte[] data)
 	{
-		String command = "writeFile " + openFile.getfileName();
+		String command = "writeFile " + openFile.getfileName() + " ";
 		ByteBuffer bb = ByteBuffer.allocate(4 + command.length() + data.length);
-		bb.putInt(command.length());
+		bb.putInt(command.length() + data.length);
 		bb.put(command.getBytes());
 		bb.put(data);
 		

@@ -242,6 +242,7 @@ public class Master {
 				for(ChunkTracker.ChunkServerInfo info : file.chunkServers)
 				{
 					ret[count] = info.ipAddress + ":" +  info.port;
+					count++;
 				}
 
 				return ret;
