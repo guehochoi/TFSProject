@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
@@ -35,15 +36,15 @@ public class FileSystem {
 
 		public TFSDirectory()
 		{        
-			subdirectories = new TreeSet<String>();
+			subdirectories = Collections.synchronizedSortedSet(new TreeSet<String>());
 
-			files = new TreeSet<TFSFile>(new Comparator<TFSFile>()
+			files = Collections.synchronizedSortedSet(new TreeSet<TFSFile>(new Comparator<TFSFile>()
 			{
 				public int compare(TFSFile a, TFSFile b)
 				{
 					return a.fileName.compareTo(b.fileName);
 				}
-			});
+			}));
 		}
 	}
 

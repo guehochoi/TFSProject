@@ -107,16 +107,22 @@ public class Master {
 			String[] ret = new String[dir.files.size() + dir.subdirectories.size()];
 			int count = 0;
 			
-			for(String subDir : dir.subdirectories)
+			synchronized(dir.subdirectories)
 			{
-				ret[count] = subDir.substring(subDir.lastIndexOf('\\') + 1,subDir.length()) + "\\";
-				count++;
+				for(String subDir : dir.subdirectories)
+				{
+					ret[count] = subDir.substring(subDir.lastIndexOf('\\') + 1,subDir.length()) + "\\";
+					count++;
+				}
 			}
 
-			for(TFSFile f : dir.files)
+			synchronized(dir.files)
 			{
-				ret[count] = f.fileName.substring(f.fileName.lastIndexOf('\\')+1,f.fileName.length());
-				count++;
+				for(TFSFile f : dir.files)
+				{
+					ret[count] = f.fileName.substring(f.fileName.lastIndexOf('\\')+1,f.fileName.length());
+					count++;
+				}
 			}
 			
 			return ret;
@@ -209,10 +215,13 @@ public class Master {
 			String[] ret = new String[dir.subdirectories.size()];
 			int count = 0;
 
-			for (String subDir : dir.subdirectories) {
-				ret[count] = subDir.substring(subDir.lastIndexOf('\\') + 1,
-						subDir.length()) + "\\";
-				count++;
+			synchronized(dir.subdirectories)
+			{
+				for (String subDir : dir.subdirectories) {
+					ret[count] = subDir.substring(subDir.lastIndexOf('\\') + 1,
+							subDir.length()) + "\\";
+					count++;
+				}
 			}
 
 			return ret;
@@ -312,14 +321,20 @@ public class Master {
 	
 	private void deleteTFSDirectory(String dir)
 	{
-		for(TFSFile file: fs.directoryHash.get(dir).files)
+		synchronized(fs.directoryHash.get(dir).files)
 		{
-			deleteTFSFile(file,dir + "\\" + file.fileName);
+			for(TFSFile file: fs.directoryHash.get(dir).files)
+			{
+				deleteTFSFile(file,dir + "\\" + file.fileName);
+			}
 		}
 		
-		for(String subdir : fs.directoryHash.get(dir).subdirectories)
+		synchronized(fs.directoryHash.get(dir).subdirectories)
 		{
-			deleteTFSDirectory(subdir);
+			for(String subdir : fs.directoryHash.get(dir).subdirectories)
+			{
+				deleteTFSDirectory(subdir);
+			}
 		}
 		
 		fs.deleteDirectory(dir);
