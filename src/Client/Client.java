@@ -3,6 +3,7 @@ package Client;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -72,6 +73,10 @@ public class Client {
 		return sendMasterQuery("ls " + currentDir);
 	}
 	
+	public String[] lscs()
+	{
+		return sendMasterQuery("lscs");
+	}
 	
 	public boolean changeDirectory(String newDirectory)
 	{
@@ -106,19 +111,11 @@ public class Client {
 		}
 	}
 	
-	public boolean createDirectory(String directoryPath)
+	public String createDirectory(String directoryPath)
 	{
 		String queryCommand = "createDirectory " + formatRemotePath(directoryPath);
 		String[] result = sendMasterQuery(queryCommand);
-
-		if(result[0].contains("true"))
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		return result[0];
 	}
 
 	public String createFile(String directoryPath, int numToCreate)
@@ -277,7 +274,7 @@ public class Client {
 			int port = Integer.parseInt(args[1]);
 			byte[] result = sendChunkServerQuery(ipAddress,port,bb.array());
 			
-			if(result[0] == 0 && result.length == 1)
+			if(result == null || (result[0] == 0 && result.length == 1))
 			{
 				continue;
 			}
@@ -287,6 +284,16 @@ public class Client {
 		
 		return null;
 	}
+	
+	public void killChunkServer(String ipAddress, int port)
+	{
+		String query = "killChunkServer";
+		ByteBuffer bb = ByteBuffer.allocate(4 + query.length());
+		bb.putInt(query.length());
+		bb.put(query.getBytes());
+		sendChunkServerQuery(ipAddress,port,bb.array());
+	}
+	
 
 	public byte[] sendChunkServerQuery(String ipAddress, int port, byte[] data)
 	{
@@ -302,30 +309,36 @@ public class Client {
 		try {
 			DataOutputStream out = new DataOutputStream(chunkServerConnection.getOutputStream());
 			
-			if(data.length < 2)
-			{
-				System.out.println("EL OH EL DATA");
-			}
-			
 			out.write(data);
-			//out.close();
+			out.flush();
 			
 			DataInputStream in = new DataInputStream(chunkServerConnection.getInputStream());
 
 			byte[] ret = new byte[in.readInt()];
+			
+			if(ret.length == 0)
+			{
+				return null;
+			}
+
 			in.readFully(ret);
 
 			out.close();
 			in.close();
 			chunkServerConnection.close();
 			return ret;
-		} catch (IOException e) {
+		} 
+		catch(EOFException e1)
+		{
+			System.out.println("Reached end of file");
+			return null;
+		}
+		catch (IOException e) {
 			System.out.println("Error making connection to chunkserver " + ipAddress + " on port " + port);
 			System.out.println(e.getMessage());
 		}
 
-		byte[] ret = new byte[1];
-		return ret;
+		return null;
 	}
 	
 	private String[] sendMasterQuery(String query)

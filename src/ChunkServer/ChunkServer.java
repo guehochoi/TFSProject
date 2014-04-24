@@ -31,6 +31,7 @@ public class ChunkServer {
 	Socket masterConnection = null;
 	String masterIpAddress = null;
 	int masterPort = 666;
+	boolean done = false;
 
 	public ChunkServer(int port)
 	{
@@ -71,7 +72,6 @@ public class ChunkServer {
 		}
 
 		ChunkServer cs = new ChunkServer(port);
-		boolean done = false;
 		ServerSocket server = null;
 
 		try {
@@ -81,7 +81,7 @@ public class ChunkServer {
 			System.exit(0);
 		}
 
-		while(!done)
+		while(!cs.done)
 		{
 			try {
 				System.out.println(cs.chunkServerPort + ": Begin accepting connections");
@@ -98,9 +98,10 @@ public class ChunkServer {
 
 				if(sendData == null)
 				{
-					byte[] ret = new byte[1];
-					ret[0] = 0;
-					out.write(ret);
+					ByteBuffer bb = ByteBuffer.allocate(4);
+					bb.putInt(0);
+					out.write(bb.array());
+					out.flush();
 					out.close();
 					continue;
 				}
@@ -115,6 +116,8 @@ public class ChunkServer {
 				System.out.println("Error processing a network request. Skipping request.");
 			}
 		}
+		
+		System.out.println(cs.chunkServerPort + ": Server is shutting down");
 	}
 
 	private String[] sendMasterQuery(String query)
@@ -157,6 +160,12 @@ public class ChunkServer {
 		}
 
 		String command = new String(data);
+		
+		if(command.isEmpty())
+		{
+			return null;
+		}
+
 		int spaceIndex = command.indexOf(" ");
 		int lastSpace = command.lastIndexOf(" ");
 
@@ -194,6 +203,8 @@ public class ChunkServer {
 			return appendFile(command,data);
 		case "updateFile":
 			return updateFile(command);
+		case "killChunkServer":
+			return killChunkServer(command);
 		}
 
 		return "Command not found".getBytes();
@@ -368,7 +379,7 @@ public class ChunkServer {
 		}
 
 		try {
-			if (file.length() > offset) {
+			if (offset >= 0 && file.length() > offset) {
 				if(size == 0)
 				{
 					size = file.length();
@@ -381,7 +392,7 @@ public class ChunkServer {
 				return bytesRead;
 			} else {
 				file.close();
-				return "Reading past file size".getBytes();
+				return null;
 			
 			}
 		} catch (IOException e) {
@@ -485,6 +496,12 @@ public class ChunkServer {
 		byte[] ret = new byte[1];
 		ret[0] = 0;
 		return ret;
+	}
+	
+	private byte[] killChunkServer(String command)
+	{
+		this.done = true;
+		return null;
 	}
 
 	private void updateMetaFile(File metaFile, int newVersion)

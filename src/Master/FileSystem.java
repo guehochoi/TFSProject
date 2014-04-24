@@ -104,9 +104,14 @@ public class FileSystem {
 		return filename + ": invalid filename or directory";
 	}
 
-	public boolean createDirectory(String directoryName)
+	public String createDirectory(String directoryName)
 	{
 		String parentDir = getDirectoryPath(directoryName);
+		
+		if(directoryHash.containsKey(directoryName))
+		{
+			return "Directory already exists";
+		}
 
 		if(directoryHash.containsKey(parentDir) && isValidDirectoryName(directoryName))
 		{
@@ -115,10 +120,10 @@ public class FileSystem {
 			parentTFSDir.subdirectories.add(directoryName);
 			directoryHash.put(directoryName, new TFSDirectory());
 			fsLogger.commitTransaction();
-			return true;
+			return "success";
 		}
 
-		return false;
+		return "Error creating directory, invalid path";
 	}
 
 	public boolean deleteDirectory(String directoryPath)

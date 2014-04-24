@@ -62,6 +62,8 @@ public class Master {
 			return checkDirectoryExists(command, spaceIndex);
 		case "ls":
 			return lsDirectory(command, spaceIndex);
+		case "lscs":
+			return lscs(command, spaceIndex);
 		case "createDirectory" :
 			return createDirectory(command, spaceIndex);
 		case "createFile" :
@@ -131,21 +133,29 @@ public class Master {
 		String ret[] = new String[1];
 		return ret;
 	}
+
+	private String[] lscs(String command, int spaceIndex)
+	{
+		synchronized(ct.liveChunkServers)
+		{
+			String[] ret = new String[ct.liveChunkServers.size()];
+			int count = 0;
+
+			for(ChunkTracker.ChunkServerInfo info : ct.liveChunkServers)
+			{
+				ret[count] = info.ipAddress + ":" + Integer.toString(info.port);
+				count++;
+			}
+			
+			return ret;
+		}
+	}
 	
 	private String[] createDirectory(String command, int spaceIndex)
 	{
 		String[] ret = new String[1];
-
-		if(fs.createDirectory(command.substring(spaceIndex+1,command.length())))
-		{
-			ret[0] = "true";
-			return ret;
-		}
-		else
-		{
-			ret[0] = "false";
-			return ret;
-		}
+		ret[0] = fs.createDirectory(command.substring(spaceIndex+1,command.length()));
+		return ret;
 	}
 
 	private String[] createFile(String command, int spaceIndex)
@@ -293,7 +303,12 @@ public class Master {
 	{
 		String fileName = command.substring(spaceIndex+1,command.length());
 		TFSFile file = fs.getFile(fileName);
-		file.sema.release();
+		
+		if(file != null)
+		{
+			file.sema.release();
+		}
+
 		return new String[1];
 	}
 	
@@ -365,7 +380,14 @@ public class Master {
 			DataInputStream in = new DataInputStream(chunkServerConnection.getInputStream());
 
 			byte[] ret = new byte[in.readInt()];
+
+			if(ret.length == 0)
+			{
+				return null;
+			}
+
 			in.readFully(ret);
+			
 
 			out.close();
 			in.close();
@@ -375,8 +397,7 @@ public class Master {
 			System.out.println("Error making connection to chunkserver " + ipAddress + " on port " + port);
 		}
 
-		byte[] ret = new byte[1];
-		return ret;
+		return null;
 	}
 }
 

@@ -14,7 +14,7 @@ import Client.Client.OpenTFSFile;
 public class Driver {
 
 	public enum Command {
-		CAT, CD, CP, EXIT, HELP, LS, MKDIR, MKFILE, PWD, RM, RMDIR, UNKNOWN, UNIT1, UNIT2, UNIT3, UNIT4, UNIT5, UNIT6, UNIT7, UNIT8
+		CAT, CD, CP, EXIT, HELP, KILLCS, LS, LSCS, MKDIR, MKFILE, PWD, RM, RMDIR, UNKNOWN, UNIT1, UNIT2, UNIT3, UNIT4, UNIT5, UNIT6, UNIT7, UNIT8
 	};
 
 	Client myClient = new Client();
@@ -90,14 +90,27 @@ public class Driver {
 		case HELP:
 			printHelp();
 			break;
+		case KILLCS:
+			if(args.length != 3)
+			{
+				System.out.println("Invalid arguments to killcs, please specify an ip address and port");
+				break;
+			}
+
+			killChunkServer(args[1],args[2]);
+			break;
 		case MKDIR:
 			if(args.length < 2)
 			{
 				System.out.println("Invalid input to mkdir command (must specify directory path or name)");
+				break;
 			}
-			else if(!myClient.createDirectory(args[1]))
+			
+			String createResult = myClient.createDirectory(args[1]);
+			
+			if(!createResult.contains("success"));
 			{
-				System.out.println("Unable to create directory " + args[1]);
+				System.out.println(createResult);
 			}
 			break;
 		case MKFILE:
@@ -108,6 +121,16 @@ public class Driver {
 			if(result != null)
 			{
 				for(String s : result)
+				{
+					System.out.println(s);
+				}
+			}
+			break;
+		case LSCS:
+			String[] lscs = myClient.lscs();
+			if(lscs != null)
+			{
+				for(String s : lscs)
 				{
 					System.out.println(s);
 				}
@@ -251,6 +274,22 @@ public class Driver {
 			myClient.closeFile(file);
 		}
 	}
+	
+	public void killChunkServer(String ipAddress, String port)
+	{
+		int myPort = 0;
+
+		try
+		{
+			myPort = Integer.parseInt(port);
+		}
+		catch(NumberFormatException e)
+		{
+			System.out.println("Invalid port, please specify an integer");
+		}
+		
+		myClient.killChunkServer(ipAddress, myPort);
+	}
 
 	/**
 	 * Unit 1 creates directories in a 'fanout' manner. The first number passed
@@ -361,22 +400,30 @@ public class Driver {
 
 		Path localPath = Paths.get(localFile);
 		byte[] localData = null;
-		byte[] sizeOfLocalData = null;
 
 		try {
 			localData = Files.readAllBytes(localPath);
-			sizeOfLocalData = ByteBuffer.allocate(4).putInt(localData.length).array();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
+		ByteBuffer bb = ByteBuffer.allocate(4 + localData.length);
+		bb.putInt(localData.length);
+		bb.put(localData);
 		OpenTFSFile openFile = myClient.openFile(TFSFile);
 		if(openFile.openResult[0].equals("File not found")) {
-			myClient.createFile(TFSFile, 3);
+			myClient.createFile(TFSFile, 1);
+			
+			if(!openFile.openResult[0].equals("success"))
+			{
+				System.out.println(openFile.openResult[0]);
+				return;
+			}
+
 			openFile = myClient.openFile(TFSFile);
 		}
-		myClient.appendFile(openFile, sizeOfLocalData);
-		myClient.appendFile(openFile, localData);
+
+		myClient.appendFile(openFile, bb.array());
 		myClient.closeFile(openFile);
 	}
 
@@ -411,7 +458,9 @@ public class Driver {
 		commandHash.put("cp", Command.CP);
 		commandHash.put("exit", Command.EXIT);
 		commandHash.put("help", Command.HELP);
+		commandHash.put("killcs", Command.KILLCS);
 		commandHash.put("ls", Command.LS);
+		commandHash.put("lscs", Command.LSCS);
 		commandHash.put("mkdir", Command.MKDIR);
 		commandHash.put("mkfile", Command.MKFILE);
 		commandHash.put("pwd", Command.PWD);
