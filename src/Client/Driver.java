@@ -392,6 +392,10 @@ public class Driver {
 		myClient.createFile(TFSpath, 1);
 		myClient.writeFile(myClient.openFile(TFSpath), data);
 	}
+	
+	public void unit5(String src, String dst) {
+		myClient.readFile(myClient.openFile(src));
+	}
 
 	public void unit6(String[] args) {
 		//Get number of bytes in local file.
