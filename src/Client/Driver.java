@@ -290,7 +290,7 @@ public class Driver {
 		myClient.writeFile(myClient.openFile(TFSpath), data);
 	}
 
-	public void unit6(String TFSpath, String localFile) {
+	public void unit6(String TFSFile, String localFile) {
 		//Get number of bytes in local file.
 		Path localPath = Paths.get(localFile);
 		byte[] localData = null;
@@ -301,7 +301,11 @@ public class Driver {
 			e.printStackTrace();
 		}
 
-		OpenTFSFile openFile = myClient.openFile(TFSpath);
+		OpenTFSFile openFile = myClient.openFile(TFSFile);
+		if(openFile.openResult[0].equals("File not found")) {
+			myClient.createFile(TFSFile, 1);
+			openFile = myClient.openFile(TFSFile);
+		}
 		myClient.appendFile(openFile, localData);
 		myClient.closeFile(openFile);
 	}
