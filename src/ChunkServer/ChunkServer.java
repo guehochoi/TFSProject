@@ -381,7 +381,8 @@ public class ChunkServer {
 				return bytesRead;
 			} else {
 				file.close();
-				return null;
+				return "Reading past file size".getBytes();
+			
 			}
 		} catch (IOException e) {
 			return null;

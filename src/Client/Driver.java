@@ -3,6 +3,7 @@ package Client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -171,21 +172,19 @@ public class Driver {
 		case UNIT5:
 			break;
 		case UNIT6:
-
-			String localFile = "";
-			String tfsFile = "";
-
 			if (args.length != 3) {
 				System.err.println("Check arguments.");
+				break;
 			}
-
-			localFile = args[1];
-			tfsFile = args[2];
-
-			unit6(tfsFile, localFile);
-
+			unit6(args);
 			break;
 		case UNIT7:
+			if (args.length != 2) {
+				System.err.println("Check arguments.");
+				break;
+			}
+			unit7(args);
+
 			break;
 		case UNIT8:
 			break;
@@ -355,24 +354,54 @@ public class Driver {
 		myClient.writeFile(myClient.openFile(TFSpath), data);
 	}
 
-	public void unit6(String TFSFile, String localFile) {
+	public void unit6(String[] args) {
 		//Get number of bytes in local file.
+		String localFile = args[1]; 
+		String TFSFile = args[2];
+
 		Path localPath = Paths.get(localFile);
 		byte[] localData = null;
+		byte[] sizeOfLocalData = null;
 
 		try {
 			localData = Files.readAllBytes(localPath);
+			sizeOfLocalData = ByteBuffer.allocate(4).putInt(localData.length).array();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 		OpenTFSFile openFile = myClient.openFile(TFSFile);
 		if(openFile.openResult[0].equals("File not found")) {
-			myClient.createFile(TFSFile, 1);
+			myClient.createFile(TFSFile, 3);
 			openFile = myClient.openFile(TFSFile);
 		}
+		myClient.appendFile(openFile, sizeOfLocalData);
 		myClient.appendFile(openFile, localData);
 		myClient.closeFile(openFile);
+	}
+
+	public void unit7(String[] args) {
+		String TFSFile = args[1];
+		OpenTFSFile openFile = myClient.openFile(TFSFile);
+		if(openFile.openResult[0].equals("File not found")) {
+			System.out.println("File not found");
+			return;
+		}
+
+		int[] fileCount = {0}; 
+		countFilesContained(openFile, 0, 4, fileCount);
+		System.out.println("Files contained in " + TFSFile + " = " + fileCount[0]);	
+		myClient.closeFile(openFile);	
+	}
+
+	public void countFilesContained(OpenTFSFile TFSFile, int offset, int size, int[] fileCount){
+		byte[] bytesRead = myClient.readFile(TFSFile, offset, size);
+		if(bytesRead == null){
+			return;
+		}
+		int newOffset = ByteBuffer.wrap(bytesRead).getInt();
+		fileCount[0]++;
+		countFilesContained(TFSFile, newOffset + offset + size, size, fileCount);
 	}
 
 
