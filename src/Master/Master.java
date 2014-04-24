@@ -329,14 +329,13 @@ public class Master {
 			}
 		}
 		
-		synchronized(fs.directoryHash.get(dir).subdirectories)
+		int subdirSize = fs.directoryHash.get(dir).subdirectories.size();
+		for (int i = 0; i < subdirSize; i++) 
 		{
-			for(String subdir : fs.directoryHash.get(dir).subdirectories)
-			{
-				deleteTFSDirectory(subdir);
-			}
+			deleteTFSDirectory(fs.directoryHash.get(dir).subdirectories.first());
+			subdirSize = fs.directoryHash.get(dir).subdirectories.size();
 		}
-		
+
 		fs.deleteDirectory(dir);
 	}
 
