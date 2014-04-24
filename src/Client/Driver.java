@@ -138,28 +138,31 @@ public class Driver {
 		case UNKNOWN:
 			break;
 		case UNIT1:
-			if(args.length < 2)
-			{
-				System.out.println("Invalid input to unit1 command (must specify number of directories to create)");
-			}
-			else 
-			{
-				unit1(Integer.parseInt(args[1]), 1, "");
+			if (args.length < 2) {
+				System.out
+						.println("Invalid input to unit1 command (must specify number of directories to create)");
+			} else {
+				int max = Integer.parseInt(args[1]);
+				int fan = Integer.parseInt(args[2]);
+				if (fan == 0)
+					simpleUnit1(max);
+				if (fan > max)
+					fan = max;
+				unit1(max, fan);
 			}
 			break;
 		case UNIT2:
-			if(args.length < 2)
-			{
-				System.out.println("Invalid input to unit1 command (must specify number of directories to create)");
-			}
-			else 
-			{
-				unit2(args[2], Integer.parseInt(args[1]));
+			if (args.length < 2) {
+				System.out
+						.println("Invalid input to unit1 command (must specify number of directories to create)");
+			} else {
+				unit2(args[1], Integer.parseInt(args[2]));
 			}
 			break;
 		case UNIT3:
-			if(args.length < 2){
-				System.out.println("Invalid input to unit1 command (must specify number of directories to create)");
+			if (args.length < 2) {
+				System.out
+						.println("Invalid input to unit1 command (must specify number of directories to create)");
 			}
 			unit3(args[1]);
 			break;
@@ -250,34 +253,96 @@ public class Driver {
 		}
 	}
 
-	public void unit1(int maxDepth, int currDir, String myDir) {
-		if (currDir > maxDepth) {
-			return;
-		}
-
-		myDir = myDir + "\\" +  currDir;		
-		myClient.createDirectory(myDir);
-
-		unit1(maxDepth, currDir * 2, myDir);
-		unit1(maxDepth, (currDir * 2) + 1, myDir);
+	/**
+	 * Unit 1 creates directories in a 'fanout' manner. The first number passed
+	 * as an argument is the number of directories to be created the second is
+	 * the fanout for those directories.
+	 * 
+	 * @param maxDirectories total number of directories to create
+	 * @param fanout how many subdirectories exist in each directory
+	 */
+	public void unit1(int maxDirectories, int fanout){
+		makeDirs(maxDirectories, fanout);
 	}
+	
+	/**
+	 * Makes directory structure with no fanout.  This is the simple case.
+	 * @param max total number of directories to create
+	 */
+	public void simpleUnit1(int max){
+		for(int i = 1; i<max+1; i++){
+			myClient.createDirectory("\\" + i);
+		}
+	}
+	
+	/**
+     * Makes the directory structure with the given depth and 
+     * fan limits in a tree pattern, filling each rung first
+     * @param depth how deep the directory goes
+     * @param fan how wide the tree is (fanout)
+     */
+    public void makeDirs(int depth, int fan) {
+        String one = "\\1";
+        myClient.createDirectory(one);
+        for (int i = 2; i < depth + 1; i++) {
+        	String toCreate = (one + getFileName(i, fan, ""));
+            myClient.createDirectory(toCreate.substring(0, toCreate.length()-1));
+        }
+    }
 
-	public void unit2(String rootDir, int numFiles){
+    /**
+     * Recursively determines the path name of a given child, with the given
+     * branching factor and accumulates in the string field
+     * @param child which directory do you want to find the parent of?
+     * @param fan branching factor
+     * @param name accumulator for the filename
+     * @return the file name relative to the base 1/ directory
+     */
+    public String getFileName(int child, int fan, String name) {
+        if (child == 1) {
+            return "\\" + name;
+        }
+        else {
+            return getFileName(getParent(child, fan), fan, child + "\\" + name);
+        }
+    }
+
+    /**
+     * Uses modular division to determine the parent of the given
+     * node with the given branching factor 
+     * @param child
+     * @param fan branching factor
+     * @return the given childs parent in the tree
+     */
+    public int getParent(int child, int fan) {
+        return (child + 1) / fan;
+    }
+	
+	/**
+	 * Unit 2 creates files within each directory and subdirectory specified.
+	 * @param rootDir directory to start creating files within.
+	 * @param numFiles number of files to be created within that directory
+	 */
+	public void unit2(String rootDir, int numFiles) {
 		for (int i = 1; i <= numFiles; i++) {
 			String fileName = "";
 			fileName = "\\File" + i + ".txt";
-			myClient.createFile(rootDir + fileName, 1);
+			myClient.createFile(rootDir + fileName, 3);
 		}
-		//TODO: Add getSubDirectories call to master
-		/*if(myClient.getSubdirectories(rootDir) == null){
-			System.err.println("Directories did not exist.  Files may not have been created.");
+		String[] subDirs = myClient.getSubdirectories(rootDir);
+		if (subDirs.length == 0 || subDirs == null || subDirs[0].equals("")) {
 			return;
 		}
-		for (String subDir : myClient.getSubdirectories(rootDir)) {
-				unit2(numFiles,subDir);
-		}*/
+		for (String subDir : subDirs) {
+			subDir = subDir.substring(0, subDir.length() - 1 );
+			unit2(rootDir + "\\" +  subDir, numFiles);
+		}
 	}
-
+	
+	/**
+	 * Unit 3 deletes the directory specified
+	 * @param directoryName name of directory to delete
+	 */
 	public void unit3(String directoryName){
 		myClient.removeDirectory(directoryName);
 	}

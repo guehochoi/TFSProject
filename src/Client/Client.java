@@ -222,6 +222,11 @@ public class Client {
 		
 		return ret;
 	}
+	
+	public String[] getSubdirectories(String directoryPath) {
+		return sendMasterQuery("getSubdirectories "
+				+ formatRemotePath(directoryPath));
+	}
 
 	public byte[] readFile(OpenTFSFile file)
 	{

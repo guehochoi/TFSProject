@@ -76,6 +76,8 @@ public class Master {
 			return removeFile(command, spaceIndex);
 		case "registerChunkServer":
 			return registerChunkServer(command, spaceIndex);
+		case "getSubdirectories" :
+			return getSubdirectories(command, spaceIndex);
 		}
 
 		return null;
@@ -196,6 +198,28 @@ public class Master {
 			ret[0] = "true";
 			return ret;
 		}
+	}
+	
+	private String[] getSubdirectories(String command, int spaceIndex) {
+		if (fs.directoryHash.containsKey(command.substring(spaceIndex + 1,
+				command.length()))) {
+			TFSDirectory dir = fs.directoryHash.get(command.substring(
+					spaceIndex + 1, command.length()));
+
+			String[] ret = new String[dir.subdirectories.size()];
+			int count = 0;
+
+			for (String subDir : dir.subdirectories) {
+				ret[count] = subDir.substring(subDir.lastIndexOf('\\') + 1,
+						subDir.length()) + "\\";
+				count++;
+			}
+
+			return ret;
+		}
+
+		String ret[] = null;
+		return ret;
 	}
 
 	private String[] removeDirectory(String command, int spaceIndex)
