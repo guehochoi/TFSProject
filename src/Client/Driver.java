@@ -178,7 +178,7 @@ public class Driver {
 		case UNIT2:
 			if (args.length < 2) {
 				System.out
-						.println("Invalid input to unit1 command (must specify number of directories to create)");
+						.println("Invalid input to unit2 command (must specify number of directories to create)");
 			} else {
 				unit2(args[1], Integer.parseInt(args[2]));
 			}
@@ -186,13 +186,28 @@ public class Driver {
 		case UNIT3:
 			if (args.length < 2) {
 				System.out
-						.println("Invalid input to unit1 command (must specify number of directories to create)");
+						.println("Invalid input to unit3 command (must specify number of directories to create)");
 			}
 			unit3(args[1]);
 			break;
 		case UNIT4:
+			if (args.length != 2) {
+				System.out.println("Incorrect number of arguments for unit4.");
+			} else {
+				try {
+					unit4(args[1], args[2]);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			break;
 		case UNIT5:
+			if (args.length != 2) {
+				System.out.println("Incorrect number of arguments for unit5.");
+			} else {
+				unit5(args[1], args[2]);
+			}
 			break;
 		case UNIT6:
 			if (args.length != 3) {
