@@ -171,11 +171,11 @@ public class ChunkServer {
 
 		if(spaceIndex < 0)
 		{
-			spaceIndex = command.length() - 1;
+			spaceIndex = command.length();
 		}
 		else if(lastSpace < 0)
 		{
-			lastSpace = command.length() - 1;
+			lastSpace = command.length();
 		}
 
 		String function = command.substring(0,spaceIndex);
