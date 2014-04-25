@@ -405,11 +405,15 @@ public class Driver {
 		byte[] data = Files.readAllBytes(path);
 
 		myClient.createFile(TFSpath, 1);
-		myClient.writeFile(myClient.openFile(TFSpath), data);
+		OpenTFSFile file = myClient.openFile(TFSpath);
+		myClient.writeFile(file, data);
+		myClient.closeFile(file);
 	}
 	
 	public void unit5(String src, String dst) {
-		myClient.readFile(myClient.openFile(src));
+		OpenTFSFile file = myClient.openFile(src);
+		myClient.readFile(file);
+		myClient.closeFile(file);
 	}
 
 	public void unit6(String[] args) {
