@@ -440,6 +440,7 @@ public class Driver {
 			if(!openFile.openResult[0].equals("success"))
 			{
 				System.out.println(openFile.openResult[0]);
+				myClient.closeFile(openFile);
 				return;
 			}
 

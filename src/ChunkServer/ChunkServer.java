@@ -117,6 +117,12 @@ public class ChunkServer {
 			}
 		}
 		
+		try {
+			server.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		System.out.println(cs.chunkServerPort + ": Server is shutting down");
 	}
 
@@ -473,8 +479,13 @@ public class ChunkServer {
 					String query = "deleteFile " + fileName;
 					return query.getBytes();
 				}
-				else if(currentVersion <= versionNumToInt(versionNumber))
+				else if(currentVersion == versionNumToInt(versionNumber))
 				{
+					return "no update".getBytes();
+				}
+				else if(currentVersion < versionNumToInt(versionNumber))
+				{
+					synchronize();
 					return "no update".getBytes();
 				}
 				else
@@ -609,10 +620,11 @@ public class ChunkServer {
 							else //it's write... so parse out the new version number
 							{
 								ByteBuffer buf = ByteBuffer.wrap(result);
-								updateMetaFile(metaFile,buf.getInt());
+								int newVersion = buf.getInt();
 								byte[] data = new byte[result.length - 4];
 								buf.get(data,0,result.length-4);
 								processData(data);
+								updateMetaFile(metaFile,newVersion);
 							}
 
 							break;
