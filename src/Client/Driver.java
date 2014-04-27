@@ -430,8 +430,8 @@ public class Driver {
 			e.printStackTrace();
 		}
 
-		ByteBuffer bb = ByteBuffer.allocate(4 + localData.length);
-		bb.putInt(localData.length);
+		ByteBuffer bb = ByteBuffer.allocate( localData.length);
+		//bb.putInt(localData.length);
 		bb.put(localData);
 		OpenTFSFile openFile = myClient.openFile(TFSFile);
 		if(openFile.openResult[0].equals("File not found")) {
@@ -441,7 +441,6 @@ public class Driver {
 			{
 				System.out.println(openFile.openResult[0]);
 				myClient.closeFile(openFile);
-				return;
 			}
 
 			openFile = myClient.openFile(TFSFile);
