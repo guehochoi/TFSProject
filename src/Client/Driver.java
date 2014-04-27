@@ -435,7 +435,7 @@ public class Driver {
 		bb.put(localData);
 		OpenTFSFile openFile = myClient.openFile(TFSFile);
 		if(openFile.openResult[0].equals("File not found")) {
-			myClient.createFile(TFSFile, 1);
+			myClient.createFile(TFSFile, 3);
 			
 			if(!openFile.openResult[0].equals("success"))
 			{
